@@ -1,21 +1,18 @@
 <script>
+import Setup from "../components/Setup.vue";
+
 export default {
+  components: {
+    Setup,
+  },
+
   data() {
     return {
       stage: "menu",
-      username: "",
-      sprite: "Sprite_1",
-      sprites: ["Sprite_1", "Sprite_2", "Sprite_3", "Sprite_4", "Sprite_5"],
     };
   },
   mounted() {
     window.addEventListener("keydown", this.handleClickEnter);
-  },
-
-  computed: {
-    imgSrc() {
-      return "/src/assets/images/" + this.sprite + ".png";
-    },
   },
 
   methods: {
@@ -34,28 +31,11 @@ export default {
     <div class="menu__welcome">
       <img class="menu__welcome__bg-img" src="/src/assets/images/menu_bg.png" />
       <h2 class="menu__welcome__press-enter">Press Enter To Start</h2>
-      <audio v-if="stage === 'menu'" controls autoplay loop>
-      <source src="/src/assets/OST/03 - Gwent Main Menu Theme.mp3" type="audio/mpeg" />
-    </audio>
     </div>
-
-
   </div>
 
   <div v-if="stage === 'setup'" class="setup">
-    <div class="setup__sprite">
-      <img class="setup__sprite__img" :src="imgSrc" />
-    </div>
-    <label>Select your Champion</label>
-    <br />
-    <label>Enter your Username:</label>
-    <input
-      type="text"
-      v-model="username"
-      class="setup__username"
-      placeholder="Username"
-      maxlength="16"
-    />
+    <Setup :stage="stage" />
   </div>
 </template>
 
@@ -97,47 +77,6 @@ export default {
   border-top: 0.1rem solid #e0e0e0;
   border-bottom: 0.1rem solid #e0e0e0;
   animation: pulse 2s infinite;
-}
-
-.setup {
-  border: 2px solid yellow;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100vw;
-  height: 90vh;
-}
-
-.setup__sprite {
-  border: 2px solid orange;
-  width: 13rem;
-  height: 15rem;
-}
-
-.setup__sprite__img {
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-.setup__username {
-  font-family: "Caudex", "Times New Roman", Times, serif;
-  text-align: center;
-  height: 2.5rem;
-  width: 15rem;
-  background-color: #ffffffe1;
-  border: 0.3rem double black;
-  border-radius: 0.2rem;
-}
-
-.setup__username:focus {
-  outline: none;
-}
-
-.setup__username::placeholder {
-  color: #363636;
 }
 
 @keyframes pulse {
