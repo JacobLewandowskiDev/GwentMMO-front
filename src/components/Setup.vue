@@ -23,6 +23,14 @@ export default {
     imgSrc() {
       return "/src/assets/images/" + this.sprite + ".png";
     },
+
+    isUsernameValid() {
+      return this.username !== '' && this.username.length >= 3;
+    },
+
+    isDisabled(){
+      return this.isUsernameValid;
+    }
   },
 };
 </script>
@@ -34,7 +42,7 @@ export default {
     <img class="setup__sprite__img" :src="imgSrc" />
   </div>
   <br />
-  <label class="setup__sprite__label">Enter your Username:</label>
+  <h3 class="setup__sprite__label">Enter your Username:</h3>
   <input
     type="text"
     v-model="username"
@@ -43,7 +51,7 @@ export default {
     maxlength="16"
     minlength="4"
   />
-  <button class="setup__submit" v-if="username != '' && username.length >= 4">
+  <button :disabled="isDisabled" :class="{ 'setup__submit--disabled': !isDisabled }" class="setup__submit">
     Start Game
   </button>
 </template>
@@ -121,5 +129,15 @@ export default {
   );
   border: 0.1rem solid #93fca9;
   color: #ffd000;
+}
+
+.setup__submit--disabled, .setup__submit--disabled:active {
+  background: linear-gradient(
+    166deg,
+    rgb(148, 153, 149) 42%,
+    rgb(105, 107, 105) 98%
+  );
+  border: 0.1rem solid #d6d6d6;
+  color: #d3d3d3;
 }
 </style>
