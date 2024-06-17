@@ -18,7 +18,6 @@ export default {
   methods: {
     handleClickEnter(event) {
       if (this.stage === "menu" && event.key === "Enter") {
-        console.log("Enter was clicked");
         this.stage = "setup";
       }
     },

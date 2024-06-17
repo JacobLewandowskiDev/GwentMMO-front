@@ -10,48 +10,58 @@ export default {
   data() {
     return {
       username: "",
-      sprite: "Sprite_1",
-      sprites: ["Sprite_1", "Sprite_2", "Sprite_3", "Sprite_4", "Sprite_5"],
+      profile: "profile_1",
+      profiles: [
+        "profile_1",
+        "profile_2",
+        "profile_3",
+        "profile_4",
+        "profile_5",
+        "profile_6",
+      ],
     };
   },
 
-  mounted() {
-    console.log(this.stage);
-  },
+  mounted() {},
 
   computed: {
     imgSrc() {
-      return "/src/assets/images/" + this.sprite + ".png";
+      return "/src/assets/images/" + this.profile + ".png";
     },
 
     isUsernameValid() {
-      return this.username !== '' && this.username.length >= 3;
+      this.username = this.username.trim();
+      if (this.username !== "" && this.username.length >= 3) {
+        return this.username;
+      }
     },
 
-    isDisabled(){
+    isDisabled() {
       return this.isUsernameValid;
-    }
+    },
   },
 };
 </script>
 
 <template>
-  <h2 class="setup__title">Select your Champion</h2>
-  <br />
-  <div class="setup__sprite">
-    <img class="setup__sprite__img" :src="imgSrc" />
+  <h2 class="title">Select your Champion</h2>
+  <div class="profile">
+    <img class="profile__img" :src="imgSrc" />
   </div>
-  <br />
-  <h3 class="setup__sprite__label">Enter your Username:</h3>
+  <h3 class="username-label">Enter your Username:</h3>
   <input
     type="text"
     v-model="username"
-    class="setup__username"
+    class="username"
     placeholder="Username"
     maxlength="16"
     minlength="4"
   />
-  <button :disabled="isDisabled" :class="{ 'setup__submit--disabled': !isDisabled }" class="setup__submit">
+  <button
+    :disabled="isDisabled"
+    :class="{ 'submit-profile--disabled': !isDisabled }"
+    class="submit-profile"
+  >
     Start Game
   </button>
 </template>
@@ -67,45 +77,49 @@ export default {
   height: 90vh;
 }
 
-.setup__title {
-  color: #fad222;
+.title {
+  color: #f5e8cb;
+  padding-bottom: .5rem;
 }
 
-.setup__sprite {
-  border: 2px solid orange;
+.profile {
   width: 13rem;
   height: 15rem;
 }
 
-.setup__sprite__img {
+.profile__img {
   width: 100%;
   height: 100%;
   z-index: 1;
 }
 
-.setup__sprite__label {
+.username-label {
   padding-bottom: 0.5rem;
+  color: #f5e8cb;
 }
 
-.setup__username {
+.username {
   font-family: "Caudex", "Times New Roman", Times, serif;
   text-align: center;
   height: 2.5rem;
   width: 15rem;
-  background-color: #ffffffe1;
-  border: 0.2rem solid #383838;
+  background-color: #ddccae;
+  border: 0.2rem solid #7d451c;
   border-radius: 0.2rem;
+  color: #000000;
+  font-weight: 900;
+  letter-spacing: 0.1rem;
 }
 
-.setup__username:focus {
+.username:focus {
   outline: none;
 }
 
-.setup__username::placeholder {
+.username::placeholder {
   color: #363636;
 }
 
-.setup__submit {
+.submit-profile {
   background: linear-gradient(
     166deg,
     rgb(58, 153, 78) 42%,
@@ -121,7 +135,7 @@ export default {
   margin-top: 0.3rem;
 }
 
-.setup__submit:active {
+.submit-profile:active {
   background: linear-gradient(
     166deg,
     rgb(58, 153, 78) 42%,
@@ -129,15 +143,23 @@ export default {
   );
   border: 0.1rem solid #93fca9;
   color: #ffd000;
+  -webkit-box-shadow: 0px 0px 20px 0px rgba(147, 252, 169, 1);
+  -moz-box-shadow: 0px 0px 20px 0px rgba(147, 252, 169, 1);
+  box-shadow: 0px 0px 20px 0px rgba(147, 252, 169, 1);
 }
 
-.setup__submit--disabled, .setup__submit--disabled:active {
+.submit-profile--disabled,
+.submit-profile--disabled:active {
   background: linear-gradient(
     166deg,
-    rgb(148, 153, 149) 42%,
-    rgb(105, 107, 105) 98%
+    rgb(107, 110, 108) 42%,
+    rgb(85, 87, 85) 98%
   );
-  border: 0.1rem solid #d6d6d6;
-  color: #d3d3d3;
+  border: 0.1rem solid #979696;
+  color: #9c9c9c;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  cursor: initial;
 }
 </style>
