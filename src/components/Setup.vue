@@ -1,4 +1,6 @@
 <script>
+import Game from "../components/Game.vue"
+
 export default {
   props: {
     stage: {
@@ -7,26 +9,21 @@ export default {
     },
   },
 
+  components: {
+    
+  },
+
   data() {
     return {
       username: "",
-      profile: "profile_1",
-      profiles: [
-        "profile_1",
-        "profile_2",
-        "profile_3",
-        "profile_4",
-        "profile_5",
-        "profile_6",
-      ],
+      currentProfile: 1,
+      maxProfile: 6, //Change this value to whatever the number of profile pictures of characters there is
     };
   },
 
-  mounted() {},
-
   computed: {
-    imgSrc() {
-      return "/src/assets/images/" + this.profile + ".png";
+    currentProfileImg() {
+      return "/src/assets/images/profile_" + this.currentProfile + ".png";
     },
 
     isUsernameValid() {
@@ -40,14 +37,29 @@ export default {
       return this.isUsernameValid;
     },
   },
+
+  methods: {
+    getProfile(option) {
+      if (option === "prev") {
+        this.currentProfile =
+          this.currentProfile - 1 < 1 ? this.maxProfile : this.currentProfile - 1;
+      } else if (option === "next") {
+        this.currentProfile =
+          this.currentProfile + 1 > this.maxProfile ? 1 : this.currentProfile + 1;
+      }
+    }
+  },
 };
 </script>
 
 <template>
   <h2 class="title">Select your Champion</h2>
   <div class="profile">
-    <img class="profile__img" :src="imgSrc" />
+    <button class="profile__prev" @click="getProfile('prev')"><</button>
+    <img class="profile__img" :src="currentProfileImg" />
+    <button class="profile__next" @click="getProfile('next')">></button>
   </div>
+
   <h3 class="username-label">Enter your Username:</h3>
   <input
     type="text"
@@ -79,18 +91,42 @@ export default {
 
 .title {
   color: #f5e8cb;
-  padding-bottom: .5rem;
+  padding-bottom: 0.5rem;
 }
 
 .profile {
-  width: 13rem;
-  height: 15rem;
+  position: relative;
+  width: 20rem;
+  height: 17rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profile__img {
-  width: 100%;
-  height: 100%;
+  width: 13rem;
+  height: 15rem;
   z-index: 1;
+}
+
+.profile__prev,
+.profile__next {
+  height: 2.5rem;
+  width: 2.5rem;
+  font-size: 2rem;
+  border: 0.2rem solid #7d451c;
+  background-color: #ceba97;
+  color: #8b5229;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.profile__prev:active,
+.profile__next:active {
+  border: 0.2rem solid #945122;
+  background-color: #ddc8a3;
+  color: #a36132;
 }
 
 .username-label {
@@ -132,7 +168,7 @@ export default {
   cursor: pointer;
   width: 10rem;
   height: 2rem;
-  margin-top: 0.3rem;
+  margin-top: 0.5rem;
 }
 
 .submit-profile:active {
