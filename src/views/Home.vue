@@ -1,5 +1,5 @@
 <script>
-import Setup from "../components/Setup.vue";
+import Setup from "../views/Setup.vue";
 
 export default {
   components: {

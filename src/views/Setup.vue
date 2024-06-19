@@ -1,5 +1,6 @@
 <script>
-import Game from "../components/Game.vue"
+import Game from "../views/Game.vue";
+import { mapActions } from "vuex";
 
 export default {
   props: {
@@ -10,7 +11,7 @@ export default {
   },
 
   components: {
-    
+    Game,
   },
 
   data() {
@@ -27,27 +28,73 @@ export default {
     },
 
     isUsernameValid() {
-      this.username = this.username.trim();
-      if (this.username !== "" && this.username.length >= 3) {
-        return this.username;
-      }
-    },
-
-    isDisabled() {
-      return this.isUsernameValid;
+      return this.username !== "" && this.username.length >= 3;
     },
   },
 
   methods: {
+    ...mapActions(["createUser"]),
+
     getProfile(option) {
       if (option === "prev") {
         this.currentProfile =
-          this.currentProfile - 1 < 1 ? this.maxProfile : this.currentProfile - 1;
+          this.currentProfile - 1 < 1
+            ? this.maxProfile
+            : this.currentProfile - 1;
       } else if (option === "next") {
         this.currentProfile =
-          this.currentProfile + 1 > this.maxProfile ? 1 : this.currentProfile + 1;
+          this.currentProfile + 1 > this.maxProfile
+            ? 1
+            : this.currentProfile + 1;
       }
-    }
+    },
+
+    createPlayer() {
+      if (this.isUsernameValid) {
+        console.log(
+          "Creating Player, proceeding to game. Username: " +
+            this.username +
+            ", profileImg: " +
+            this.currentProfile
+        );
+        this.createUser();
+        this.$router.push({
+          path: "/game",
+          query: { username: this.username, profileImg: this.currentProfile },
+        });
+      } else {
+        console.log("Cannot submit.");
+      }
+    },
+
+    // async createPlayer() {
+    //   if (this.isUsernameValid) {
+    //     console.log("Creating Player, proceeding to game. Username: " + this.username + ", profileImg: " + this.currentProfile );
+    //     try {
+    //       const response = await fetch("/api/createPlayer", {
+    //         method: "POST",
+    //         headers: {
+    //           "Content-Type:": "application/json",
+    //         },
+    //         body: JSON.stringify({
+    //           username: this.username,
+    //           profileImg: this.currentProfile,
+    //         }),
+    //       });
+    //       const data = await response.json();
+    //       console.log(data);
+    //       if (data.exists) {
+    //         alert("Username already exists, please enter a new one");
+    //       } else {
+    //         alert("Creating character, proceeding to game.");
+    //       }
+    //     } catch (error) {
+    //       console.error("There was an error checking the username:", error);
+    //     }
+    //   } else {
+    //     console.log("Button is disabled, cannot submit");
+    //   }
+    // },
   },
 };
 </script>
@@ -70,9 +117,10 @@ export default {
     minlength="4"
   />
   <button
-    :disabled="isDisabled"
-    :class="{ 'submit-profile--disabled': !isDisabled }"
+    :disabled="!isUsernameValid"
+    :class="{ 'submit-profile--disabled': !isUsernameValid }"
     class="submit-profile"
+    @click="createPlayer"
   >
     Start Game
   </button>
