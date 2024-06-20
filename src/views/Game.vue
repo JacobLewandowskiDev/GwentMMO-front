@@ -15,8 +15,7 @@ export default {
 </script>
 
 <template>
-<h1>Welcome {{ username }} </h1>
-<img style="width: 12rem;" :src="'/src/assets/images/profile_' + this.profileImg + '.png'"/>
+    <h1>Implement a Canvas</h1>
 </template>
 
 <style scoped>
