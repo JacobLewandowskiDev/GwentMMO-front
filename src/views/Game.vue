@@ -11,12 +11,26 @@ export default {
             required: true
         }
     },
+
+    mounted() {
+        let gameScript = document.createElement('script')
+      gameScript.setAttribute('src', 'src/logic/game.js')
+      document.head.appendChild(gameScript)
+    }
 }
 </script>
 
 <template>
-    <h1>Implement a Canvas</h1>
+    <canvas id="myCanvas"></canvas>
 </template>
 
 <style scoped>
+body {
+    * {
+        all: initial;
+    }
+}
+.myCanvas {
+    border: 2px solid yellow;
+}
 </style>
