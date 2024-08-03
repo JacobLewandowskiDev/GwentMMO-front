@@ -14,8 +14,8 @@ export default {
 
     mounted() {
         let gameScript = document.createElement('script')
-      gameScript.setAttribute('src', 'src/logic/game.js')
-      document.head.appendChild(gameScript)
+        gameScript.setAttribute('src', 'src/logic/game.js')
+        document.head.appendChild(gameScript)
     }
 }
 </script>
