@@ -4,8 +4,15 @@ const ctx = canvas.getContext('2d');
 canvas.width = 1280;
 canvas.height = 720;
 
-ctx.fillStyle = 'white';
-ctx.fillRect(50,50, canvas.width, canvas.height);
+if (typeof window.collisions !== 'undefined') {
+    const collisions = window.collisions;
+
+    console.log('Collisions:', collisions);
+
+    // Your game logic here
+} else {
+    console.error('Collisions data is not available.');
+}
 
 
 // Import Map & Character Sprite (crop character sprite to a single animation frame and center)
@@ -28,7 +35,7 @@ class Sprite {
 
 const map = new Sprite( {
     position: {
-        x: -1400,
+        x: -1280,
         y: -1500
     },
     image: mapImage
@@ -65,46 +72,46 @@ function animate() {
         playerimage.height
     )
 
-
     switch(true) {
-        case keys.w.pressed:
-            map.position.y = map.position.y + 4
+        case (keys.w.pressed && lastKey == 'w'):
+            map.position.y += 4
             break;
-        case keys.s.pressed:
-            map.position.y = map.position.y - 4
+        case (keys.s.pressed && lastKey == 's'):
+            map.position.y -= 4
             break;
-        case keys.a.pressed:
-            map.position.x = map.position.x + 4
+        case (keys.a.pressed && lastKey == 'a'):
+            map.position.x += 4
             break;
-        case keys.d.pressed:
-            map.position.x = map.position.x - 4
+        case (keys.d.pressed && lastKey == 'd'):
+            map.position.x -= 4
             break;
     }
-
-    // if (keys.s.pressed) {
-    //     map.position.y = map.position.y - 3
-    // }
 }
 
 animate();
 
-
+// Keydown eventListener
+let lastKey = '';
 window.addEventListener('keydown', (e) => {
     switch(e.key.toLowerCase()) {
         case 'w':
             keys.w.pressed = true;
+            lastKey = 'w';
             break;
 
         case 's':
             keys.s.pressed = true;
+            lastKey = 's';
             break;
 
         case 'a':
             keys.a.pressed = true;
+            lastKey = 'a';
             break;
 
         case 'd':
             keys.d.pressed = true;
+            lastKey = 'd';
             break;
     }
 })
