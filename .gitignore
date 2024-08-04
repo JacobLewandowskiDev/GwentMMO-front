@@ -425,3 +425,6 @@ FodyWeavers.xsd
 /public/
 /src/assets/images/
 /src/assets/OST/
+
+# Data directory
+/src/data
