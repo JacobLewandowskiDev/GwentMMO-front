@@ -1,11 +1,6 @@
 <script>
-import collisions from '@/data/collisions'
 export default {
-    data() {
-        return {
-            collisions: collisions
-        }
-    },
+
     props: {
         username: {
             type: String,
@@ -23,6 +18,9 @@ export default {
         let gameScript = document.createElement('script')
         gameScript.setAttribute('src', 'src/logic/game.js')
         document.head.appendChild(gameScript)
+
+
+        
     }
 }
 </script>
