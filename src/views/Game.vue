@@ -2,7 +2,7 @@
 import collisions from "@/data/collisions.js";
 import indoorMusic from "@/data/indoorMusic.js";
 import outdoorMusic from "@/data/outdoorMusic.js";
-import tavern_map from "@/assets/images/tavern_map.png";
+import tavern_map from "@/assets/images/gwent_tavern_map.png";
 import tavern_map_foreground from "@/assets/images/tavern_map_foreground.png";
 import playerImage from "@/assets/images/playerDown.png";
 import playerUp from "@/assets/images/playerUp.png";
@@ -43,35 +43,35 @@ export default {
     canvas.height = 720;
 
     const collisionsMap = [];
-    for (let i = 0; i < this.collisions.length; i += 50) {
-      collisionsMap.push(this.collisions.slice(i, i + 50));
+    for (let i = 0; i < this.collisions.length; i += 70) {
+      collisionsMap.push(this.collisions.slice(i, i + 70));
     }
 
     class Boundary {
       static width = 32 * 2.7;
       static height = 32 * 2.7;
-      constructor({ position, width, height }) {
+      constructor({ position }) {
         (this.position = position),
           (this.width = 32 * 2.7),
           (this.height = 32 * 2.7);
       }
 
       draw() {
-        ctx.fillStyle = 'rgba(255, 0, 0, .0)';
+        ctx.fillStyle = 'rgba(255, 0, 0, 0)';
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
       }
     }
 
     const offset = {
-      x: -1865,
-      y: -2050,
+      x: -2550,
+      y: -1900,
     };
 
     const boundaries = [];
 
     collisionsMap.forEach((row, i) => {
       row.forEach((symbol, j) => {
-        if (symbol == 2081) {
+        if (symbol == 2513) {
           boundaries.push(
             new Boundary({
               position: {
