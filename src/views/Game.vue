@@ -1,108 +1,55 @@
 <script>
-import collisions from "@/data/collisions.js";
-import indoorMusic from "@/data/indoorMusic.js";
-import outdoorMusic from "@/data/outdoorMusic.js";
-import tavern_map from "@/assets/images/gwent_tavern_map.png";
-import tavern_map_foreground from "@/assets/images/tavern_map_foreground.png";
-import playerImage from "@/assets/images/playerDown.png";
-import playerUp from "@/assets/images/playerUp.png";
-import playerLeft from "@/assets/images/playerLeft.png";
-import playerRight from "@/assets/images/playerRight.png";
+import map_imgSrc from "@/assets/images/gwent_tavern_map.png";
+import map_foreground_imgSrc from "@/assets/images/tavern_map_foreground.png";
+import player_downImgSrc from "@/assets/images/playerDown.png";
 
 export default {
   data() {
     return {
-      collisions: collisions,
-      indoorMusic: indoorMusic,
-      outdoorMusic: outdoorMusic,
-      tavern_map: tavern_map,
-      tavern_map_foreground: tavern_map_foreground,
-      playerImage: playerImage,
+      map_imgSrc,
+      map_foreground_imgSrc,
+      player_downImgSrc,
+      
     };
   },
 
-  props: {
-    username: {
-      type: String,
-      required: true,
-    },
-    profileImg: {
-      type: Number,
-      required: true,
-    },
-  },
-
-  methods: {},
+  methods() {},
 
   mounted() {
-    // Canvas creation
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
 
     canvas.width = 1280;
     canvas.height = 720;
 
-    const collisionsMap = [];
-    for (let i = 0; i < this.collisions.length; i += 70) {
-      collisionsMap.push(this.collisions.slice(i, i + 70));
-    }
-
-    class Boundary {
-      static width = 32 * 2.7;
-      static height = 32 * 2.7;
-      constructor({ position }) {
-        (this.position = position),
-          (this.width = 32 * 2.7),
-          (this.height = 32 * 2.7);
-      }
-
-      draw() {
-        ctx.fillStyle = 'rgba(255, 0, 0, 0)';
-        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
-      }
-    }
-
     const offset = {
-      x: -2550,
+      x: -2500,
       y: -1900,
     };
 
-    const boundaries = [];
+    //Return the image based on img.src
+    function getImage(imgSrc) {
+        const image = new Image();
+        image.src = imgSrc;
+        return image;
+    }
 
-    collisionsMap.forEach((row, i) => {
-      row.forEach((symbol, j) => {
-        if (symbol == 2513) {
-          boundaries.push(
-            new Boundary({
-              position: {
-                x: j * Boundary.width + offset.x,
-                y: i * Boundary.height + offset.y,
-              },
-            })
-          );
-        }
-      });
-    });
+    const mapImage = getImage(map_imgSrc);
+    const mapForegroundImage = getImage(map_foreground_imgSrc);
+    const playerImage = getImage(player_downImgSrc);
 
-    const mapImage = new Image();
-    mapImage.src = this.tavern_map;
-
-    const playerImage = new Image();
-    playerImage.src = this.playerImage;
-
-    const mapForeground = new Image();
-    mapForeground.src = this.tavern_map_foreground;
-
+    //Create new Sprite Class
     class Sprite {
-      constructor({ position, image, frames = { max: 1 } }) {
-        (this.position = position),
-          (this.image = image),
-          (this.frames = frames),
-          (this.image.onload = () => {
-            this.width = this.image.width / this.frames.max;
-            this.height = this.image.height;
-          });
+      constructor({ image, position, frames = { max: 1 } }) {
+        this.image = image;
+        this.position = position;
+        this.frames = frames;
+        this.image.onload = () => {
+          this.width = this.image.width / this.frames.max;
+          this.height = this.image.height;
+        };
       }
+
       draw() {
         ctx.drawImage(
           this.image,
@@ -118,36 +65,33 @@ export default {
       }
     }
 
-    const player = new Sprite({
-      position: {
-        // 192 & 68 are the dimensions of the character image
-        x: canvas.width / 2 - 192 / 8,
-        y: canvas.height / 2 - 68 / 2,
-      },
-      image: playerImage,
-      frames: {
-        max: 4,
-      },
-    });
-
+    //Create Map & player Sprites
     const map = new Sprite({
+      image: mapImage,
       position: {
         x: offset.x,
         y: offset.y,
       },
-      image: mapImage,
     });
 
-    const mapForegroundS = new Sprite({
-        position: {
-            x: offset.x,
-            y: offset.y
-        },
-        image: mapForeground
+    const mapForeground = new Sprite({
+      image: mapForegroundImage,
+      position: {
+        x: offset.x,
+        y: offset.y,
+      },
     });
 
-    // Key eventListeners:
-    const keys = {
+    const player = new Sprite({
+      image: playerImage,
+      position: {
+        x: canvas.width / 2 + 264 / 8,
+        y: canvas.height / 2 - 79 / 2,
+      },
+      frames: { max: 4 },
+    });
+
+    let keys = {
       w: { pressed: false },
       s: { pressed: false },
       a: { pressed: false },
@@ -199,149 +143,70 @@ export default {
       }
     });
 
-    const movables = [map, mapForegroundS, ...boundaries];
-
-    function rectangularCollision({ rectangle_1, rectangle_2 }) {
-      return (
-        rectangle_1.position.x + rectangle_1.width >= rectangle_2.position.x &&
-        rectangle_1.position.x <= rectangle_2.position.x + rectangle_2.width &&
-        rectangle_1.position.y + rectangle_1.height >= rectangle_2.position.y &&
-        rectangle_1.position.y <= rectangle_2.position.y + rectangle_2.height
-      );
-    }
-
-    //Game loop
-    function gameLoop() {
-      window.requestAnimationFrame(gameLoop);
-      map.draw();
-      boundaries.forEach((boundary) => {
-        boundary.draw();
-      });
-      player.draw();
-      mapForegroundS.draw();
-
-      let moving = true;
+    function move() {
       if (keys.w.pressed && lastKey == "w") {
-        for (let i = 0; i < boundaries.length; i++) {
-          const boundary = boundaries[i];
-          if (
-            rectangularCollision({
-              rectangle_1: player,
-              rectangle_2: {
-                ...boundary,
-                position: {
-                  x: boundary.position.x,
-                  y: boundary.position.y + 4,
-                },
-              },
-            })
-          ) {
-            moving = false;
-            break;
-          }
-        }
-        if (moving == true) {
-          movables.forEach((moveable) => {
-            moveable.position.y += 4;
-          });
-        }
+        player.position.y -= 4;
+        canvas.translate
       }
-
       if (keys.s.pressed && lastKey == "s") {
-        for (let i = 0; i < boundaries.length; i++) {
-          const boundary = boundaries[i];
-          if (
-            rectangularCollision({
-              rectangle_1: player,
-              rectangle_2: {
-                ...boundary,
-                position: {
-                  x: boundary.position.x,
-                  y: boundary.position.y - 4,
-                },
-              },
-            })
-          ) {
-            moving = false;
-            break;
-          }
-        }
-        if (moving == true) {
-          movables.forEach((moveable) => {
-            moveable.position.y -= 4;
-          });
-        }
+        player.position.y += 4;
       }
-
       if (keys.a.pressed && lastKey == "a") {
-        for (let i = 0; i < boundaries.length; i++) {
-          const boundary = boundaries[i];
-          if (
-            rectangularCollision({
-              rectangle_1: player,
-              rectangle_2: {
-                ...boundary,
-                position: {
-                  x: boundary.position.x + 4,
-                  y: boundary.position.y,
-                },
-              },
-            })
-          ) {
-            moving = false;
-            break;
-          }
-        }
-        if (moving == true) {
-          movables.forEach((moveable) => {
-            moveable.position.x += 4;
-          });
-        }
+        player.position.x -= 4;
       }
-
       if (keys.d.pressed && lastKey == "d") {
-        for (let i = 0; i < boundaries.length; i++) {
-          const boundary = boundaries[i];
-          if (
-            rectangularCollision({
-              rectangle_1: player,
-              rectangle_2: {
-                ...boundary,
-                position: {
-                  x: boundary.position.x - 4,
-                  y: boundary.position.y,
-                },
-              },
-            })
-          ) {
-            moving = false;
-            break;
-          }
-        }
-        if (moving == true) {
-          movables.forEach((moveable) => {
-            moveable.position.x -= 4;
-          });
-        }
+        player.position.x += 4;
       }
     }
 
-    gameLoop();
+  
+
+    function positions() {
+
+        console.log(
+          "Player Position: X:" +
+            player.position.x +
+            ", Y:" +
+            player.position.y
+        );
+        console.log(
+          "Canvas Position: X:" +
+            map.position.x +
+            ", Y:" +
+            map.position.y
+        );
+    }
+
+    window.addEventListener("keydown", (e) => {
+        if (e.key == "Enter") {
+            positions();
+        }});
+
+
+    //Game Loop
+    function game() {
+      window.requestAnimationFrame(game);
+      map.draw();
+      player.draw();
+      mapForeground.draw();
+
+      // Move player
+      move();
+
+
+
+    }
+    //Initiate the Game once
+    let runOnce = false;
+    if (!runOnce) {
+      game();
+    }
   },
 };
 </script>
 
 <template>
-  <canvas id="myCanvas"></canvas>
+  <canvas class="canvas"></canvas>
 </template>
 
-<style scoped>
-body {
-  * {
-    all: initial;
-  }
-}
-.myCanvas {
-  border: 2px solid yellow;
-}
-</style>
+<style></style>
