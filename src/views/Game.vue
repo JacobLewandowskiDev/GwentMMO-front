@@ -15,29 +15,12 @@ export default {
       player_downImgSrc,
       player_leftImgSrc,
       player_rightImgSrc,
-      isDaytime: true,
     };
   },
 
-  computed: {
-    gameTimeClass() {
-      return this.isDaytime ? "game__time-day" : "game__time-night";
-    },
-  },
-
-  methods: {
-    dayNightCycle() {
-      const date = new Date();
-      let timeOfDay = date.getHours();
-
-      this.isDaytime = timeOfDay >= 7 && timeOfDay <= 19;
-    },
-  },
+  methods: {},
 
   mounted() {
-    // Check what time is at users side and change ingame time accordingly
-    this.dayNightCycle();
-
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -56,10 +39,13 @@ export default {
       return image;
     }
 
+    // Map Image
     const mapImage = getImage(map_imgSrc);
 
+    // Foreground Image
     const mapForegroundImage = getImage(map_foreground_imgSrc);
 
+    // Player Sprites (added from _1 to _5 depending on which sprite was chosen in character creation)
     const playerSprites = {
       up: getImage(player_upImgSrc),
       down: getImage(player_downImgSrc),
@@ -69,7 +55,7 @@ export default {
 
     //Create new Sprite Class
     class Sprite {
-      constructor({ image, position, frames = { max: 1 }}) {
+      constructor({ image, position, frames = { max: 1 } }) {
         this.image = image;
         this.position = position;
         this.frames = { ...frames, val: 0, elapsed: 0 };
@@ -109,7 +95,7 @@ export default {
       }
     }
 
-    //Create Map & player playerSprites
+    //Create Map & player object
     const map = new Sprite({
       image: mapImage,
       position: {
@@ -142,6 +128,60 @@ export default {
       },
     });
 
+    // Candle lights for in-game night time
+    const circleXY = [
+      { x: -408, y: -395 },
+      { x: 195, y: -395 },
+      { x: 1233, y: -395 },
+      { x: 1233, y: -1000 },
+      { x: 803, y: -1000 },
+      { x: 715, y: -1000 },
+      { x: 285, y: -1000 },
+      { x: 195, y: -1000 },
+    ];
+
+    const candleLight_1 = {
+      radius: 10,
+      fillStyle: "rgba(238,153,17, 0.4)",
+    };
+
+    const candleLight_2 = {
+      radius: 50,
+      fillStyle: "rgba(238,153,17, 0.2)",
+    };
+
+    // Draw the lights for the candles
+    function lights(radius, fillStyle) {
+      ctx.beginPath();
+
+      circleXY.forEach(({ x, y }) => {
+        ctx.moveTo(x + radius, y);
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+      });
+
+      ctx.fillStyle = fillStyle;
+      ctx.fill();
+      ctx.strokeStyle = fillStyle;
+      ctx.stroke();
+    }
+
+    // Check users time of day, and change in-game day/night cycle to match
+    function dayNightCycle() {
+      const date = new Date();
+      let timeOfDay = date.getHours();
+      let isDaytime = timeOfDay >= 7 && timeOfDay < 19;
+
+      if (isDaytime) {
+        ctx.fillStyle = "rgba(12, 20, 124, 0)";
+      } else {
+        ctx.fillStyle = "rgba(12, 20, 124, 0.5)";
+        ctx.fillRect(offset.x, offset.y, map.width, map.height);
+        lights(candleLight_2.radius, candleLight_2.fillStyle);
+        lights(candleLight_1.radius, candleLight_1.fillStyle);
+      }
+    }
+
+    // Player movement
     let keys = {
       w: { pressed: false },
       s: { pressed: false },
@@ -232,20 +272,18 @@ export default {
       }
     }
 
-    //For testingpurposes only (remove once everything works as should)
-    function positions() {
-      console.log(
-        "Player_1 Position: X:" + player.position.x + ", Y:" + player.position.y
-      );
-
-      console.log(
-        "Canvas Position: X:" + map.position.x + ", Y:" + map.position.y
-      );
-    }
-
+    //For testing purposes only (remove once everything works as should)
     window.addEventListener("keydown", (e) => {
       if (e.key == "Enter") {
-        positions();
+        console.log(
+          "Player_1 Position: X:" +
+            player.position.x +
+            ", Y:" +
+            player.position.y
+        );
+        console.log(
+          "Canvas Position: X:" + map.position.x + ", Y:" + map.position.y
+        );
       }
     });
 
@@ -255,6 +293,7 @@ export default {
       map.draw();
       player.draw();
       mapForeground.draw();
+      dayNightCycle();
 
       // Move player
       move();
@@ -264,51 +303,18 @@ export default {
     if (!runOnce) {
       game();
     }
+
+    //Re-draw everything (When user comes back from a game of gwent)
+    function redraw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      game();
+    }
   },
 };
 </script>
 
 <template>
-  <div class="game">
-    <canvas></canvas>
-    <div :class="['game__time', gameTimeClass]"></div>
-  </div>
+  <canvas></canvas>
 </template>
 
-<style>
-.game {
-  width: 1280px;
-  height: 720px;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.game__time-night {
-  width: inherit;
-  height: inherit;
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(12, 20, 124, 0.5);
-  z-index: 2;
-}
-
-.game__time-day {
-  width: inherit;
-  height: inherit;
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(12, 20, 124, 0);
-  z-index: 2;
-}
-
-canvas {
-  position: absolute;
-  z-index: 1;
-}
-</style>
+<style></style>
