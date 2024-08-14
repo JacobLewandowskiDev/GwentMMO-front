@@ -5,6 +5,7 @@ import player_upImgSrc from "@/assets/images/playerUp.png";
 import player_downImgSrc from "@/assets/images/playerDown.png";
 import player_leftImgSrc from "@/assets/images/playerLeft.png";
 import player_rightImgSrc from "@/assets/images/playerRight.png";
+import collisions from "@/data/collisions";
 
 export default {
   data() {
@@ -15,6 +16,7 @@ export default {
       player_downImgSrc,
       player_leftImgSrc,
       player_rightImgSrc,
+      collisions,
     };
   },
 
@@ -37,6 +39,28 @@ export default {
       const image = new Image();
       image.src = imgSrc;
       return image;
+    }
+
+    // Create subarrays of collision squares by slicing main array by num of columns in map (70)
+    const collisionsMap = [];
+    for (let i = 0; i < collisions.length; i += 70) {
+      collisionsMap.push(collisions.slice(i, 70 + i));
+    }
+
+    //Create new Boundry Class
+    class Boundry {
+      static boundryWidth = 32 * 2.7;
+      static boundryHeight = 32 * 2.7;
+      constructor({ position }) {
+        this.position = position;
+        this.width = Boundry.boundryWidth;
+        this.height = Boundry.boundryHeight;
+      }
+
+      draw() {
+        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+      }
     }
 
     // Map Image
@@ -126,6 +150,30 @@ export default {
         left: playerSprites.left,
         right: playerSprites.right,
       },
+    });
+
+    const testBoundry = new Boundry({
+      position: {
+        x: 640,
+        y: 144,
+      },
+    });
+
+    const boundries = [];
+
+    collisionsMap.forEach((row, i) => {
+      row.forEach((symbol, j) => {
+        if (symbol == 2513) {
+          boundries.push(
+            new Boundry({
+              position: {
+                x: j * Boundry.boundryHeight + offset.x,
+                y: i * Boundry.boundryWidth + offset.y,
+              },
+            })
+          );
+        }
+      });
     });
 
     // Candle lights for in-game night time
@@ -293,6 +341,10 @@ export default {
       map.draw();
       player.draw();
       mapForeground.draw();
+      boundries.forEach(boundry => {
+        boundry.draw();
+      })
+      testBoundry.draw();
       dayNightCycle();
 
       // Move player
