@@ -47,18 +47,18 @@ export default {
       collisionsMap.push(collisions.slice(i, 70 + i));
     }
 
-    //Create new Boundry Class
-    class Boundry {
-      static boundryWidth = 32 * 2.7;
-      static boundryHeight = 32 * 2.7;
+    //Create new Boundary Class
+    class Boundary {
+      static boundaryWidth = 32 * 2.7;
+      static boundaryHeight = 32 * 2.7;
       constructor({ position }) {
         this.position = position;
-        this.width = Boundry.boundryWidth;
-        this.height = Boundry.boundryHeight;
+        this.width = Boundary.boundaryWidth;
+        this.height = Boundary.boundaryHeight;
       }
 
       draw() {
-        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+        ctx.fillStyle = "rgba(255, 0, 0, 0)";
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
       }
     }
@@ -152,23 +152,16 @@ export default {
       },
     });
 
-    const testBoundry = new Boundry({
-      position: {
-        x: 640,
-        y: 144,
-      },
-    });
-
-    const boundries = [];
+    const boundaries = [];
 
     collisionsMap.forEach((row, i) => {
       row.forEach((symbol, j) => {
         if (symbol == 2513) {
-          boundries.push(
-            new Boundry({
+          boundaries.push(
+            new Boundary({
               position: {
-                x: j * Boundry.boundryHeight + offset.x,
-                y: i * Boundry.boundryWidth + offset.y,
+                x: j * Boundary.boundaryHeight + offset.x,
+                y: i * Boundary.boundaryWidth + offset.y,
               },
             })
           );
@@ -291,32 +284,121 @@ export default {
     });
 
     function move() {
+      let moving = true;
       if (keys.w.pressed && lastKey == "w") {
         player.image = playerSprites.up;
-        player.position.y -= 4;
-        ctx.translate(0, 4);
-        player.moving = true;
+        for (let i = 0; i < boundaries.length; i++) {
+          const boundary = boundaries[i];
+          if (
+            playerCollision({
+              player: player,
+              boundary: {
+                ...boundary,
+                position: {
+                  x: boundary.position.x,
+                  y: boundary.position.y + 4,
+                },
+              },
+            })
+          ) {
+            moving = false;
+            player.moving = false;
+            player.frames.val = 0;
+            break;
+          }
+        }
+        if (moving == true) {
+          player.position.y -= 4;
+          ctx.translate(0, 4);
+          player.moving = true;
+        }
       }
 
       if (keys.s.pressed && lastKey == "s") {
         player.image = playerSprites.down;
-        player.position.y += 4;
-        ctx.translate(0, -4);
-        player.moving = true;
+        for (let i = 0; i < boundaries.length; i++) {
+          const boundary = boundaries[i];
+          if (
+            playerCollision({
+              player: player,
+              boundary: {
+                ...boundary,
+                position: {
+                  x: boundary.position.x,
+                  y: boundary.position.y - 4,
+                },
+              },
+            })
+          ) {
+            moving = false;
+            player.moving = false;
+            player.frames.val = 0;
+            break;
+          }
+        }
+        if (moving == true) {
+          player.position.y += 4;
+          ctx.translate(0, -4);
+          player.moving = true;
+        }
       }
 
       if (keys.a.pressed && lastKey == "a") {
         player.image = playerSprites.left;
-        player.position.x -= 4;
-        ctx.translate(4, 0);
-        player.moving = true;
+        for (let i = 0; i < boundaries.length; i++) {
+          const boundary = boundaries[i];
+          if (
+            playerCollision({
+              player: player,
+              boundary: {
+                ...boundary,
+                position: {
+                  x: boundary.position.x + 4,
+                  y: boundary.position.y,
+                },
+              },
+            })
+          ) {
+            moving = false;
+            player.moving = false;
+            player.frames.val = 0;
+            break;
+          }
+        }
+        if (moving == true) {
+          player.position.x -= 4;
+          ctx.translate(4, 0);
+          player.moving = true;
+        }
       }
 
       if (keys.d.pressed && lastKey == "d") {
         player.image = playerSprites.right;
-        player.position.x += 4;
-        ctx.translate(-4, 0);
-        player.moving = true;
+        for (let i = 0; i < boundaries.length; i++) {
+          const boundary = boundaries[i];
+          if (
+            playerCollision({
+              player: player,
+              boundary: {
+                ...boundary,
+                position: {
+                  x: boundary.position.x - 4,
+                  y: boundary.position.y,
+                },
+              },
+            })
+          ) {
+            moving = false;
+            player.moving = false;
+            player.frames.val = 0;
+            break;
+          }
+        }
+        if (moving == true) {
+          player.position.x += 4;
+          ctx.translate(-4, 0);
+          player.moving = true;
+        }
       }
     }
 
@@ -335,16 +417,25 @@ export default {
       }
     });
 
+    //Check if player is in range of collisions or interactible objects
+    function playerCollision({ player, boundary }) {
+      return (
+        player.position.x + player.width >= boundary.position.x &&
+        player.position.x <= boundary.position.x + boundary.width &&
+        player.position.y >= boundary.position.y - boundary.height &&
+        player.position.y - player.width <= boundary.position.y
+      );
+    }
+
     //Game Loop
     function game() {
       window.requestAnimationFrame(game);
       map.draw();
       player.draw();
       mapForeground.draw();
-      boundries.forEach(boundry => {
-        boundry.draw();
-      })
-      testBoundry.draw();
+      boundaries.forEach((boundary) => {
+        boundary.draw();
+      });
       dayNightCycle();
 
       // Move player
