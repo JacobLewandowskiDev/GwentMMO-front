@@ -6,6 +6,8 @@ import player_downImgSrc from "@/assets/images/playerDown.png";
 import player_leftImgSrc from "@/assets/images/playerLeft.png";
 import player_rightImgSrc from "@/assets/images/playerRight.png";
 import collisions from "@/data/collisions";
+import indoorMusic from "@/assets/audio/indoor.mp3";
+import outdoorMusic from "@/assets/audio/outdoor.mp3";
 
 export default {
   data() {
@@ -17,12 +19,47 @@ export default {
       player_leftImgSrc,
       player_rightImgSrc,
       collisions,
+      indoorMusic,
+      outdoorMusic,
+      indoorMusicPlaying: false,
+      outdoorMusicPlaying: true,
+      outdoor: new Howl({
+        src: outdoorMusic,
+        html5: true,
+        loop: true,
+        volume: 0.5,
+      }),
+      indoor: new Howl({
+        src: indoorMusic,
+        html5: true,
+        loop: true,
+        volume: 0.5,
+      }),
     };
   },
-
-  methods: {},
+  methods: {
+    radio() {
+      let startRadio = false;
+      if(!startRadio) {
+        this.outdoor.play();
+        startRadio = true;
+      }
+    }   
+  },
 
   mounted() {
+    function worldRadio() {
+      if (this.outdoorMusicPlaying == true) {
+        this.outdoorMusic.play();
+        this.indoorMusicPlaying = false;
+        return;
+      }
+      if (!this.isPlaying) {
+        this.menuMusic.play();
+        this.isPlaying = true;
+      }
+    };
+
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -30,7 +67,7 @@ export default {
     canvas.height = 720;
 
     const offset = {
-      x: -2525,
+      x: -2560,
       y: -1880,
     };
 
@@ -41,20 +78,25 @@ export default {
       return image;
     }
 
-    // Create subarrays of collision squares by slicing main array by num of columns in map (70)
-    const collisionsMap = [];
-    for (let i = 0; i < collisions.length; i += 70) {
-      collisionsMap.push(collisions.slice(i, 70 + i));
+    // Create subarrays for event tiles by slicing main array by num of columns in map (70)
+    function createTileSubArrays(dataArray, newArray) {
+      for (let i = 0; i < dataArray.length; i += 70) {
+        newArray.push(dataArray.slice(i, 70 + i));
+      }
     }
 
-    //Create new Boundary Class
+    // Create subarrays of collision tiles
+    const collisionsMap = [];
+    createTileSubArrays(collisions, collisionsMap);
+
+    //Create new Boundary Class (Tile width & Height = 32px * 270%(Zoom in on map))
     class Boundary {
-      static boundaryWidth = 32 * 2.7;
-      static boundaryHeight = 32 * 2.7;
+      static eventTileWidth = 32 * 2.7;
+      static eventTileHeight = 32 * 2.7;
       constructor({ position }) {
         this.position = position;
-        this.width = Boundary.boundaryWidth;
-        this.height = Boundary.boundaryHeight;
+        this.width = Boundary.eventTileWidth;
+        this.height = Boundary.eventTileHeight;
       }
 
       draw() {
@@ -137,11 +179,12 @@ export default {
     });
 
     const playerImage = playerSprites.down;
+    const playerOffset = { x: 40, y: 50 };
     const player = new Sprite({
       image: playerImage,
       position: {
-        x: canvas.width / 2 - playerImage.width / 8,
-        y: canvas.height / 2 - playerImage.height / 2,
+        x: canvas.width / 2 - playerImage.width / 8 - playerOffset.x,
+        y: canvas.height / 2 - playerImage.height / 2 - playerOffset.y,
       },
       frames: { max: 4 },
       playerSprites: {
@@ -160,8 +203,8 @@ export default {
           boundaries.push(
             new Boundary({
               position: {
-                x: j * Boundary.boundaryHeight + offset.x,
-                y: i * Boundary.boundaryWidth + offset.y,
+                x: j * Boundary.eventTileHeight + offset.x,
+                y: i * Boundary.eventTileWidth + offset.y,
               },
             })
           );
@@ -171,14 +214,14 @@ export default {
 
     // Candle lights for in-game night time
     const circleXY = [
-      { x: -408, y: -395 },
-      { x: 195, y: -395 },
-      { x: 1233, y: -395 },
-      { x: 1233, y: -1000 },
-      { x: 803, y: -1000 },
-      { x: 715, y: -1000 },
-      { x: 285, y: -1000 },
-      { x: 195, y: -1000 },
+      { x: -405 - playerOffset.x, y: -395 },
+      { x: 200 - playerOffset.x, y: -395 },
+      { x: 1238 - playerOffset.x, y: -395 },
+      { x: 1238 - playerOffset.x, y: -1000 },
+      { x: 808 - playerOffset.x, y: -1000 },
+      { x: 720 - playerOffset.x, y: -1000 },
+      { x: 2830 - playerOffset.x, y: -1000 },
+      { x: 200 - playerOffset.x, y: -1000 },
     ];
 
     const candleLight_1 = {
@@ -457,7 +500,11 @@ export default {
 </script>
 
 <template>
-  <canvas></canvas>
+  <canvas class="canvas"></canvas>
 </template>
 
-<style></style>
+<style scoped>
+.canvas {
+  border: 8px double #15a068;
+}
+</style>
