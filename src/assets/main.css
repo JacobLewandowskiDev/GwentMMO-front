@@ -28,3 +28,14 @@ body {
 h2 {
   font-size: 2rem;
 }
+
+.audio {
+  position: absolute;
+  width: 3rem;
+  height: 3rem;
+  top: 30px;
+  left: 30px;
+  cursor: pointer;
+  background-color: #00000000;
+  z-index: 5;
+}

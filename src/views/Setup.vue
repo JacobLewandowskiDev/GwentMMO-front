@@ -1,5 +1,6 @@
 <script>
 import Game from "../views/Game.vue";
+import Radio from "@/components/Radio.vue";
 import { mapActions } from "vuex";
 
 export default {
@@ -12,6 +13,7 @@ export default {
 
   components: {
     Game,
+    Radio,
   },
 
   data() {
@@ -32,6 +34,9 @@ export default {
     },
   },
 
+  emits: ['stop-music'],
+
+
   methods: {
     ...mapActions(["createUser"]),
 
@@ -51,6 +56,7 @@ export default {
 
     createPlayer() {
       if (this.isUsernameValid) {
+        this.$emit('stop-music');
         console.log(
           "Creating Player, proceeding to game. Username: " +
             this.username +

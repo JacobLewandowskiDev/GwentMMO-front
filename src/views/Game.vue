@@ -6,8 +6,6 @@ import player_downImgSrc from "@/assets/images/playerDown.png";
 import player_leftImgSrc from "@/assets/images/playerLeft.png";
 import player_rightImgSrc from "@/assets/images/playerRight.png";
 import collisions from "@/data/collisions";
-import indoorMusic from "@/assets/audio/indoor.mp3";
-import outdoorMusic from "@/assets/audio/outdoor.mp3";
 
 export default {
   data() {
@@ -19,47 +17,19 @@ export default {
       player_leftImgSrc,
       player_rightImgSrc,
       collisions,
-      indoorMusic,
-      outdoorMusic,
-      indoorMusicPlaying: false,
-      outdoorMusicPlaying: true,
-      outdoor: new Howl({
-        src: outdoorMusic,
-        html5: true,
-        loop: true,
-        volume: 0.5,
-      }),
-      indoor: new Howl({
-        src: indoorMusic,
-        html5: true,
-        loop: true,
-        volume: 0.5,
-      }),
     };
   },
   methods: {
     radio() {
       let startRadio = false;
-      if(!startRadio) {
+      if (!startRadio) {
         this.outdoor.play();
         startRadio = true;
       }
-    }   
+    },
   },
 
   mounted() {
-    function worldRadio() {
-      if (this.outdoorMusicPlaying == true) {
-        this.outdoorMusic.play();
-        this.indoorMusicPlaying = false;
-        return;
-      }
-      if (!this.isPlaying) {
-        this.menuMusic.play();
-        this.isPlaying = true;
-      }
-    };
-
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
 
