@@ -1,6 +1,5 @@
 <script>
 import Game from "../views/Game.vue";
-import Radio from "@/components/Radio.vue";
 import { mapActions } from "vuex";
 
 export default {
@@ -13,7 +12,6 @@ export default {
 
   components: {
     Game,
-    Radio,
   },
 
   data() {

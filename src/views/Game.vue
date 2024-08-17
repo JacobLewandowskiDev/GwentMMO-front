@@ -6,6 +6,8 @@ import player_downImgSrc from "@/assets/images/playerDown.png";
 import player_leftImgSrc from "@/assets/images/playerLeft.png";
 import player_rightImgSrc from "@/assets/images/playerRight.png";
 import collisions from "@/data/collisions";
+import OutdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
+import IndoorTheme from "@/assets/audio/IndoorTheme.mp3";
 
 export default {
   data() {
@@ -17,19 +19,32 @@ export default {
       player_leftImgSrc,
       player_rightImgSrc,
       collisions,
+      OutdoorThemePlaying: true,
+      OutdoorThemeSong: new Howl({
+        src: OutdoorTheme,
+        html5: true,
+        loop: true,
+        volume: 0.5,
+      }),
+      IndoorThemeSong: new Howl({
+        src: IndoorTheme,
+        html5: true,
+        loop: true,
+        volume: 0.5,
+      }),
     };
   },
-  methods: {
-    radio() {
-      let startRadio = false;
-      if (!startRadio) {
-        this.outdoor.play();
-        startRadio = true;
-      }
-    },
-  },
+  methods: {},
 
   mounted() {
+    // Start Outdoor music upon mounting of DOM element
+    let startRadio = false;
+    if (!startRadio) {
+      startRadio = true;
+      this.OutdoorThemeSong.play();
+      this.OutdoorThemePlaying = true;
+    }
+
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -130,6 +145,42 @@ export default {
         }
       }
     }
+
+    class MusicTile {
+      constructor({ position, type }) {
+        this.position = position;
+        this.type = type;
+        this.width = Boundary.eventTileWidth;
+        this.height = Boundary.eventTileHeight;
+      }
+
+      draw() {
+        if(this.type == "outdoor") {
+          ctx.fillStyle = "rgba(0, 191, 255, 0.5)";
+        } else {
+          ctx.fillStyle = "rgba(237, 206, 35, 0.5)";
+        }
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+      }
+    }
+
+    // The parameters of where to place the musicTiles on the map (Entrance to tavern)
+    const musicObjectData = [
+      { x: 560, y: -240, type: "outdoor" },
+      { x: 640, y: -240, type: "outdoor" },
+      { x: 560, y: -150, type: "indoor" },
+      { x: 640, y: -150, type: "indoor" },
+    ];
+
+    const musicTiles = [];
+
+    musicObjectData.forEach(({ x, y, type }) => {
+      const musicTile = new MusicTile({
+        position: { x, y },
+        type: type,
+      });
+      musicTiles.push(musicTile);
+    });
 
     //Create Map & player object
     const map = new Sprite({
@@ -448,6 +499,10 @@ export default {
       mapForeground.draw();
       boundaries.forEach((boundary) => {
         boundary.draw();
+      });
+
+      musicTiles.forEach((tile) => {
+        tile.draw();
       });
       dayNightCycle();
 

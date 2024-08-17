@@ -1,6 +1,6 @@
 <script>
 import Setup from "../views/Setup.vue";
-import MainMenu from "@/assets/audio/main_menu.mp3";
+import MenuTheme from "@/assets/audio/MenuTheme.mp3";
 
 export default {
   components: {
@@ -10,10 +10,10 @@ export default {
   data() {
     return {
       stage: "menu",
-      MainMenu,
+      MenuTheme,
       isPlaying: false,
-      menuMusic: new Howl({
-        src: MainMenu,
+      menuSong: new Howl({
+        src: MenuTheme,
         html5: true,
         loop: true,
         volume: 0.7,
@@ -28,11 +28,11 @@ export default {
   methods: {
     togglePlay() {
       if (this.isPlaying == true) {
-        this.menuMusic.pause();
+        this.menuSong.pause();
         this.isPlaying = false;
         return;
       } else {
-        this.menuMusic.play();
+        this.menuSong.play();
         this.isPlaying = true;
       }
       this.$emit("toggle-play");
@@ -41,10 +41,15 @@ export default {
     playMenuMusic() {
       addEventListener("click", () => {
         if (!this.clicked) {
-          this.menuMusic.play();
+          this.menuSong.play();
           this.clicked = true;
         }
       });
+    },
+
+    stopMusic() {
+      this.menuSong.stop();
+      this.isPlaying = false;
     },
 
     handleClickEnter(event) {
@@ -83,7 +88,7 @@ export default {
   </div>
 
   <div v-if="stage === 'setup'" class="setup">
-    <Setup :stage="stage" @stop-music="togglePlay" />
+    <Setup :stage="stage" @stop-music="stopMusic" />
   </div>
 </template>
 
