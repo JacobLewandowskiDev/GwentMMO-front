@@ -6,8 +6,9 @@ import player_downImgSrc from "@/assets/images/playerDown.png";
 import player_leftImgSrc from "@/assets/images/playerLeft.png";
 import player_rightImgSrc from "@/assets/images/playerRight.png";
 import collisions from "@/data/collisions";
-import OutdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
-import IndoorTheme from "@/assets/audio/IndoorTheme.mp3";
+import outdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
+import indoorTheme from "@/assets/audio/IndoorTheme.mp3";
+import Radio from "@/components/Radio.vue";
 
 export default {
   data() {
@@ -19,30 +20,61 @@ export default {
       player_leftImgSrc,
       player_rightImgSrc,
       collisions,
-      OutdoorThemePlaying: true,
-      OutdoorThemeSong: new Howl({
-        src: OutdoorTheme,
+      isPlaying: true,
+      outdoorThemePlaying: false,
+      outdoorThemeSong: new Howl({
+        src: outdoorTheme,
         html5: true,
         loop: true,
         volume: 0.5,
       }),
-      IndoorThemeSong: new Howl({
-        src: IndoorTheme,
+      indoorThemeSong: new Howl({
+        src: indoorTheme,
         html5: true,
         loop: true,
         volume: 0.5,
       }),
     };
   },
-  methods: {},
+
+  components: {
+    Radio,
+  },
+
+  methods: {
+    togglePlay() {
+      if(this.outdoorThemePlaying && this.isPlaying) {
+        this.outdoorThemeSong.pause();
+        this.isPlaying = false
+        return;
+
+      } else if(this.outdoorThemePlaying && !this.isPlaying){
+        this.outdoorThemeSong.play();
+        this.isPlaying = true;
+        return;
+      }
+      
+      if(!this.outdoorThemePlaying && this.isPlaying){
+        this.indoorThemeSong.pause();
+        this.isPlaying = false;
+        return;
+
+      } else if(!this.outdoorThemePlaying && !this.isPlaying){
+        this.indoorThemeSong.play();
+        this.isPlaying = true;
+        return;
+      }
+      this.$emit("toggle-play");
+    },
+  },
 
   mounted() {
     // Start Outdoor music upon mounting of DOM element
     let startRadio = false;
     if (!startRadio) {
       startRadio = true;
-      this.OutdoorThemeSong.play();
-      this.OutdoorThemePlaying = true;
+      this.outdoorThemeSong.play();
+      this.outdoorThemePlaying = true;
     }
 
     const canvas = document.querySelector("canvas");
@@ -155,7 +187,7 @@ export default {
       }
 
       draw() {
-        if(this.type == "outdoor") {
+        if (this.type == "outdoor") {
           ctx.fillStyle = "rgba(0, 191, 255, 0.5)";
         } else {
           ctx.fillStyle = "rgba(237, 206, 35, 0.5)";
@@ -525,6 +557,7 @@ export default {
 </script>
 
 <template>
+  <Radio :isPlaying="isPlaying" @click="togglePlay"/>
   <canvas class="canvas"></canvas>
 </template>
 
