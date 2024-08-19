@@ -32,7 +32,7 @@ export default {
         src: indoorTheme,
         html5: true,
         loop: true,
-        volume: 0.5,
+        volume: 0.25,
       }),
     };
   },
@@ -43,23 +43,21 @@ export default {
 
   methods: {
     togglePlay() {
-      if(this.outdoorThemePlaying && this.isPlaying) {
+      if (this.outdoorThemePlaying && this.isPlaying) {
         this.outdoorThemeSong.pause();
-        this.isPlaying = false
+        this.isPlaying = false;
         return;
-
-      } else if(this.outdoorThemePlaying && !this.isPlaying){
+      } else if (this.outdoorThemePlaying && !this.isPlaying) {
         this.outdoorThemeSong.play();
         this.isPlaying = true;
         return;
       }
-      
-      if(!this.outdoorThemePlaying && this.isPlaying){
+
+      if (!this.outdoorThemePlaying && this.isPlaying) {
         this.indoorThemeSong.pause();
         this.isPlaying = false;
         return;
-
-      } else if(!this.outdoorThemePlaying && !this.isPlaying){
+      } else if (!this.outdoorThemePlaying && !this.isPlaying) {
         this.indoorThemeSong.play();
         this.isPlaying = true;
         return;
@@ -69,6 +67,7 @@ export default {
   },
 
   mounted() {
+    const vm = this;
     // Start Outdoor music upon mounting of DOM element
     let startRadio = false;
     if (!startRadio) {
@@ -178,42 +177,6 @@ export default {
       }
     }
 
-    class MusicTile {
-      constructor({ position, type }) {
-        this.position = position;
-        this.type = type;
-        this.width = Boundary.eventTileWidth;
-        this.height = Boundary.eventTileHeight;
-      }
-
-      draw() {
-        if (this.type == "outdoor") {
-          ctx.fillStyle = "rgba(0, 191, 255, 0.5)";
-        } else {
-          ctx.fillStyle = "rgba(237, 206, 35, 0.5)";
-        }
-        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
-      }
-    }
-
-    // The parameters of where to place the musicTiles on the map (Entrance to tavern)
-    const musicObjectData = [
-      { x: 560, y: -240, type: "outdoor" },
-      { x: 640, y: -240, type: "outdoor" },
-      { x: 560, y: -150, type: "indoor" },
-      { x: 640, y: -150, type: "indoor" },
-    ];
-
-    const musicTiles = [];
-
-    musicObjectData.forEach(({ x, y, type }) => {
-      const musicTile = new MusicTile({
-        position: { x, y },
-        type: type,
-      });
-      musicTiles.push(musicTile);
-    });
-
     //Create Map & player object
     const map = new Sprite({
       image: mapImage,
@@ -275,6 +238,7 @@ export default {
       { x: 720 - playerOffset.x, y: -1000 },
       { x: 2830 - playerOffset.x, y: -1000 },
       { x: 200 - playerOffset.x, y: -1000 },
+      { x: 290 - playerOffset.x, y: -1000 },
     ];
 
     const candleLight_1 = {
@@ -379,10 +343,36 @@ export default {
       }
     });
 
+    let isPlayerInside = false;
+
+    function changeSongs() {
+      const playerX = player.position.x;
+      const playerY = player.position.y;
+
+      // Determine if the player is inside or outside
+      const isInside = playerX < 800 && playerX > 440 && playerY < -330;
+      const isOutside = playerX < 800 && playerX > 440 && playerY > -130;
+
+      if (isInside && !isPlayerInside && vm.outdoorThemePlaying) {
+        console.log("Playing indoor music");
+        vm.outdoorThemeSong.pause();
+        vm.indoorThemeSong.play();
+        vm.outdoorThemePlaying = false;
+        isPlayerInside = true; // Update state to inside
+      } else if (isOutside && isPlayerInside && !vm.outdoorThemePlaying) {
+        console.log("Playing outdoor music");
+        vm.indoorThemeSong.pause();
+        vm.outdoorThemeSong.play();
+        vm.outdoorThemePlaying = true;
+        isPlayerInside = false; // Update state to outside
+      }
+    }
+
     function move() {
       let moving = true;
       if (keys.w.pressed && lastKey == "w") {
         player.image = playerSprites.up;
+        changeSongs();
         for (let i = 0; i < boundaries.length; i++) {
           const boundary = boundaries[i];
           if (
@@ -412,6 +402,7 @@ export default {
 
       if (keys.s.pressed && lastKey == "s") {
         player.image = playerSprites.down;
+        changeSongs();
         for (let i = 0; i < boundaries.length; i++) {
           const boundary = boundaries[i];
           if (
@@ -441,6 +432,7 @@ export default {
 
       if (keys.a.pressed && lastKey == "a") {
         player.image = playerSprites.left;
+        changeSongs();
         for (let i = 0; i < boundaries.length; i++) {
           const boundary = boundaries[i];
           if (
@@ -470,6 +462,7 @@ export default {
 
       if (keys.d.pressed && lastKey == "d") {
         player.image = playerSprites.right;
+        changeSongs();
         for (let i = 0; i < boundaries.length; i++) {
           const boundary = boundaries[i];
           if (
@@ -533,11 +526,7 @@ export default {
         boundary.draw();
       });
 
-      musicTiles.forEach((tile) => {
-        tile.draw();
-      });
       dayNightCycle();
-
       // Move player
       move();
     }
@@ -557,7 +546,7 @@ export default {
 </script>
 
 <template>
-  <Radio :isPlaying="isPlaying" @click="togglePlay"/>
+  <Radio :isPlaying="isPlaying" @click="togglePlay" />
   <canvas class="canvas"></canvas>
 </template>
 
