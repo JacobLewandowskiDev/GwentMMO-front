@@ -1,6 +1,5 @@
 <script>
 import Game from "../views/Game.vue";
-import { mapActions } from "vuex";
 
 export default {
   props: {
@@ -17,88 +16,82 @@ export default {
   data() {
     return {
       username: "",
-      currentProfile: 1,
-      maxProfile: 6, //Change this value to whatever the number of profile pictures of characters there is
+      currentSprite: 1,
+      maxSprite: 6, //Change this value to whatever the number of profile pictures of characters there is
     };
   },
 
   computed: {
-    currentProfileImg() {
-      return "/src/assets/images/profile_" + this.currentProfile + ".png";
+    currentSpriteImg() {
+      return "/src/assets/images/profile_" + this.currentSprite + ".png";
     },
 
     isUsernameValid() {
-      return this.username !== "" && this.username.length >= 3;
+      return (
+        this.username !== "" &&
+        this.username.length >= 3 &&
+        (this.username.match(/[a-zA-Z]/g) || []).length >= 3
+      );
     },
   },
 
-  emits: ['stop-music'],
-
+  emits: ["stop-music"],
 
   methods: {
-    ...mapActions(["createUser"]),
-
-    getProfile(option) {
+    getSprite(option) {
       if (option === "prev") {
-        this.currentProfile =
-          this.currentProfile - 1 < 1
-            ? this.maxProfile
-            : this.currentProfile - 1;
+        this.currentSprite =
+          this.currentSprite - 1 < 1 ? this.maxSprite : this.currentSprite - 1;
       } else if (option === "next") {
-        this.currentProfile =
-          this.currentProfile + 1 > this.maxProfile
-            ? 1
-            : this.currentProfile + 1;
+        this.currentSprite =
+          this.currentSprite + 1 > this.maxSprite ? 1 : this.currentSprite + 1;
       }
     },
 
-    createPlayer() {
+    // Create a new player, check if username exists (If so, throw error), else GET request to start game and open websocket connection to the server.
+    async startGame() {
       if (this.isUsernameValid) {
-        this.$emit('stop-music');
-        console.log(
-          "Creating Player, proceeding to game. Username: " +
-            this.username +
-            ", profileImg: " +
-            this.currentProfile
-        );
-        this.createUser();
-        this.$router.push({
-          path: "/game",
-          query: { username: this.username, profileImg: this.currentProfile },
-        });
+        const player = { username: this.username, sprite: this.currentSprite };
+
+        fetch("http://localhost:8080/game", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(player),
+        })
+          .then((response) => {
+            if (response.status === 201) {
+              this.$emit("stop-music");
+              console.log(response.status);
+              this.$router.push({
+                path: "/game",
+                query: {
+                  username: this.username,
+                  sprite: this.currentSprite,
+                },
+              });
+
+              return response.json();
+            } else {
+              alert(
+                "User under this username already exists, please pick a different one."
+              );
+              throw new Error(
+                "Username taken - Failed to create new Player, status: " + response.status
+              );
+            }
+          })
+          .then((data) => {
+            console.log("Player created with ID:", data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
       } else {
-        console.log("Cannot submit.");
+        console.log("Button is disabled, cannot submit");
       }
     },
-
-    // async createPlayer() {
-    //   if (this.isUsernameValid) {
-    //     console.log("Creating Player, proceeding to game. Username: " + this.username + ", profileImg: " + this.currentProfile );
-    //     try {
-    //       const response = await fetch("/api/createPlayer", {
-    //         method: "POST",
-    //         headers: {
-    //           "Content-Type:": "application/json",
-    //         },
-    //         body: JSON.stringify({
-    //           username: this.username,
-    //           profileImg: this.currentProfile,
-    //         }),
-    //       });
-    //       const data = await response.json();
-    //       console.log(data);
-    //       if (data.exists) {
-    //         alert("Username already exists, please enter a new one");
-    //       } else {
-    //         alert("Creating character, proceeding to game.");
-    //       }
-    //     } catch (error) {
-    //       console.error("There was an error checking the username:", error);
-    //     }
-    //   } else {
-    //     console.log("Button is disabled, cannot submit");
-    //   }
-    // },
   },
 };
 </script>
@@ -106,9 +99,9 @@ export default {
 <template>
   <h2 class="title">Select your Champion</h2>
   <div class="profile">
-    <button class="profile__prev" @click="getProfile('prev')"><</button>
-    <img class="profile__img" :src="currentProfileImg" />
-    <button class="profile__next" @click="getProfile('next')">></button>
+    <button class="profile__prev" @click="getSprite('prev')"><</button>
+    <img class="profile__img" :src="currentSpriteImg" />
+    <button class="profile__next" @click="getSprite('next')">></button>
   </div>
 
   <h3 class="username-label">Enter your Username:</h3>
@@ -124,7 +117,7 @@ export default {
     :disabled="!isUsernameValid"
     :class="{ 'submit-profile--disabled': !isUsernameValid }"
     class="submit-profile"
-    @click="createPlayer"
+    @click="startGame"
   >
     Start Game
   </button>

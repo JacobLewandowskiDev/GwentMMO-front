@@ -1,7 +1,6 @@
 import Home from "@/views/Home.vue";
 import Game from "@/views/Game.vue";
 import Setup from "@/views/Setup.vue";
-import store from "@/store/index.js";
 import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
@@ -14,15 +13,8 @@ const router = createRouter({
       component: Game,
       props: (route) => ({
         username: route.query.username,
-        profileImg: parseInt(route.query.profileImg)
-      }),
-      beforeEnter: (to, from, next) => {
-        if (store.getters.isPlayerCreated) {
-          next();
-        } else {
-          next('/');
-        }
-      },
+        sprite: parseInt(route.query.sprite)
+      })
     },
   ],
 });

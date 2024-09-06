@@ -6,7 +6,7 @@ import MenuTheme from "@/assets/audio/MenuTheme.mp3";
 export default {
   components: {
     Setup,
-    Radio
+    Radio,
   },
 
   data() {
@@ -64,7 +64,7 @@ export default {
 </script>
 
 <template>
-  <Radio :isPlaying="isPlaying" @click="togglePlay"/>
+  <Radio :isPlaying="isPlaying" @click="togglePlay" />
   <div v-if="stage === 'menu'" class="menu">
     <div class="menu__welcome">
       <img class="menu__welcome__bg-img" src="/src/assets/images/menu_bg.png" />
