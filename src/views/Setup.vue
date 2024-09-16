@@ -27,9 +27,11 @@ export default {
     },
 
     isUsernameValid() {
+      const validCharsRegex = /^[a-zA-Z!@#$]+$/;
       return (
         this.username !== "" &&
         this.username.length >= 3 &&
+        validCharsRegex.test(this.username) &&
         (this.username.match(/[a-zA-Z]/g) || []).length >= 3
       );
     },
@@ -62,8 +64,24 @@ export default {
         })
           .then((response) => {
             if (response.status === 201) {
+              return response.json();
+            } else {
+              alert(
+                "User under this username already exists, please pick a different one."
+              );
+              throw new Error(
+                "Username taken - Failed to create new Player, status: " +
+                  response.status
+              );
+            }
+          })
+          .then((data) => {
+            if (
+              data.username === this.username &&
+              data.sprite === this.currentSprite
+            ) {
               this.$emit("stop-music");
-              console.log(response.status);
+              console.log("Player created:", data.username, data.sprite);
               this.$router.push({
                 path: "/game",
                 query: {
@@ -71,19 +89,11 @@ export default {
                   sprite: this.currentSprite,
                 },
               });
-
-              return response.json();
             } else {
-              alert(
-                "User under this username already exists, please pick a different one."
-              );
               throw new Error(
-                "Username taken - Failed to create new Player, status: " + response.status
+                "Username or sprite does not match the submitted data."
               );
             }
-          })
-          .then((data) => {
-            console.log("Player created with ID:", data);
           })
           .catch((error) => {
             console.error("Error:", error);

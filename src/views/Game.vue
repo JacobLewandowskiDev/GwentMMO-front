@@ -46,20 +46,24 @@ export default {
       if (this.outdoorThemePlaying && this.isPlaying) {
         this.outdoorThemeSong.pause();
         this.isPlaying = false;
+        console.log(this.isPlaying);
         return;
       } else if (this.outdoorThemePlaying && !this.isPlaying) {
         this.outdoorThemeSong.play();
         this.isPlaying = true;
+        console.log(this.isPlaying);
         return;
       }
 
       if (!this.outdoorThemePlaying && this.isPlaying) {
         this.indoorThemeSong.pause();
         this.isPlaying = false;
+        console.log(this.isPlaying);
         return;
       } else if (!this.outdoorThemePlaying && !this.isPlaying) {
         this.indoorThemeSong.play();
         this.isPlaying = true;
+        console.log(this.isPlaying);
         return;
       }
       this.$emit("toggle-play");
@@ -67,6 +71,9 @@ export default {
   },
 
   mounted() {
+    const playerUsername = this.$route.query.username;
+    const playerSprite = this.$route.query.sprite;
+    console.log("Data recieved: " + playerUsername + ", sprite: " + playerSprite)
     const vm = this;
     // Start Outdoor music upon mounting of DOM element
     let startRadio = false;
@@ -350,19 +357,21 @@ export default {
       const playerY = player.position.y;
 
       // Determine if the player is inside or outside
-      const isInside = playerX < 800 && playerX > 440 && playerY < -330;
-      const isOutside = playerX < 800 && playerX > 440 && playerY > -130;
+      const insideBoundary = playerX < 800 && playerX > 440 && playerY < -330;
+      const outsideBoundary = playerX < 800 && playerX > 440 && playerY > -130;
 
-      if (isInside && !isPlayerInside && vm.outdoorThemePlaying) {
-        console.log("Playing indoor music");
+      if (insideBoundary && !isPlayerInside && vm.outdoorThemePlaying) {
         vm.outdoorThemeSong.pause();
-        vm.indoorThemeSong.play();
+        if(vm.isPlaying) {
+          vm.indoorThemeSong.play();
+        }
         vm.outdoorThemePlaying = false;
         isPlayerInside = true; // Update state to inside
-      } else if (isOutside && isPlayerInside && !vm.outdoorThemePlaying) {
-        console.log("Playing outdoor music");
+      } else if (outsideBoundary && isPlayerInside && !vm.outdoorThemePlaying) {
         vm.indoorThemeSong.pause();
-        vm.outdoorThemeSong.play();
+        if(vm.isPlaying) {
+          vm.outdoorThemeSong.play();
+        }
         vm.outdoorThemePlaying = true;
         isPlayerInside = false; // Update state to outside
       }
