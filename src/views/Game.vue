@@ -9,6 +9,7 @@ import collisions from "@/data/collisions";
 import outdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
 import indoorTheme from "@/assets/audio/IndoorTheme.mp3";
 import Radio from "@/components/Radio.vue";
+import { mapGetters } from 'vuex';
 
 export default {
   data() {
@@ -37,8 +38,16 @@ export default {
     };
   },
 
+
   components: {
     Radio,
+  },
+
+  computed: {
+    ...mapGetters(['getPlayerData']),
+    player() {
+      return this.getPlayerData;
+    },
   },
 
   methods: {
@@ -70,11 +79,12 @@ export default {
     },
   },
 
+
   mounted() {
-    const playerUsername = this.$route.query.username;
-    const playerSprite = this.$route.query.sprite;
-    console.log("Data recieved: " + playerUsername + ", sprite: " + playerSprite)
-    const vm = this;
+    const vm = this;   
+
+    console.log('Player data received in child component:', this.player.id);
+
     // Start Outdoor music upon mounting of DOM element
     let startRadio = false;
     if (!startRadio) {
@@ -556,7 +566,7 @@ export default {
 
 <template>
   <Radio :isPlaying="isPlaying" @click="togglePlay" />
-  <canvas class="canvas"></canvas>
+  <canvas class="canvas" ></canvas>
 </template>
 
 <style scoped>

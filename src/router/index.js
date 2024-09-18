@@ -6,15 +6,13 @@ import { createRouter, createWebHistory } from "vue-router";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: "/", name: "home", component: Home },
-    { path: "/setup", name: "setup", component: Setup },
+    { path: "/", name: "Home", component: Home },
+    { path: "/setup", name: "Setup", component: Setup },
     {
       path: '/game',
+      name: "Game",
       component: Game,
-      props: (route) => ({
-        username: route.query.username,
-        sprite: parseInt(route.query.sprite)
-      })
+      props: true
     },
   ],
 });

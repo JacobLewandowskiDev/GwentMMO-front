@@ -1,5 +1,6 @@
 <script>
 import Game from "../views/Game.vue";
+import { mapActions } from 'vuex';
 
 export default {
   props: {
@@ -15,6 +16,7 @@ export default {
 
   data() {
     return {
+      playerData: null,
       username: "",
       currentSprite: 1,
       maxSprite: 6, //Change this value to whatever the number of profile pictures of characters there is
@@ -40,6 +42,8 @@ export default {
   emits: ["stop-music"],
 
   methods: {
+    ...mapActions(['updatePlayerData']),
+    
     getSprite(option) {
       if (option === "prev") {
         this.currentSprite =
@@ -55,53 +59,41 @@ export default {
       if (this.isUsernameValid) {
         const player = { username: this.username, sprite: this.currentSprite };
 
-        fetch("http://localhost:8080/game", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(player),
-        })
-          .then((response) => {
-            if (response.status === 201) {
-              return response.json();
-            } else {
-              alert(
-                "User under this username already exists, please pick a different one."
-              );
-              throw new Error(
-                "Username taken - Failed to create new Player, status: " +
-                  response.status
-              );
-            }
-          })
-          .then((data) => {
-            if (
-              data.username === this.username &&
-              data.sprite === this.currentSprite
-            ) {
-              this.$emit("stop-music");
-              console.log("Player created:", data.username, data.sprite);
-              this.$router.push({
-                path: "/game",
-                query: {
-                  username: this.username,
-                  sprite: this.currentSprite,
-                },
-              });
-            } else {
-              throw new Error(
-                "Username or sprite does not match the submitted data."
-              );
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
+        try {
+          const response = await fetch("http://localhost:8080/game", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(player),
           });
+
+          if (response.status === 201) {
+            const data = await response.json();
+
+            if (data.username === this.username && data.sprite === this.currentSprite) {
+              this.$emit("stop-music"); // Stop Main menu music
+              this.updatePlayerData(data);
+              this.$router.push({name: 'Game'})
+            } else {
+              throw new Error("Username or sprite does not match the submitted data.");
+            }
+          } else {
+            alert(
+              "User under this username already exists, please pick a different one."
+            );
+            throw new Error(
+              "Username taken - Failed to create new Player, status: " +
+                response.status
+            );
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
       } else {
         console.log("Button is disabled, cannot submit");
       }
-    },
+    }
   },
 };
 </script>
