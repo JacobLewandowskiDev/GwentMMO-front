@@ -1,10 +1,38 @@
 <script>
 import map_imgSrc from "@/assets/images/gwent_tavern_map.png";
 import map_foreground_imgSrc from "@/assets/images/tavern_map_foreground.png";
-import player_upImgSrc from "@/assets/images/playerUp.png";
-import player_downImgSrc from "@/assets/images/playerDown.png";
-import player_leftImgSrc from "@/assets/images/playerLeft.png";
-import player_rightImgSrc from "@/assets/images/playerRight.png";
+import profile_1_imgSrc from "@/assets/images/profileSprites/profile_1.png";
+import profile_2_imgSrc from "@/assets/images/profileSprites/profile_2.png";
+import profile_3_imgSrc from "@/assets/images/profileSprites/profile_3.png";
+import profile_4_imgSrc from "@/assets/images/profileSprites/profile_4.png";
+import profile_5_imgSrc from "@/assets/images/profileSprites/profile_5.png";
+import profile_6_imgSrc from "@/assets/images/profileSprites/profile_6.png";
+
+import profile_1_up_imgSrc from "@/assets/images/charSprites/profile_1_up.png";
+import profile_1_down_imgSrc from "@/assets/images/charSprites/profile_1_down.png";
+import profile_1_left_imgSrc from "@/assets/images/charSprites/profile_1_left.png";
+import profile_1_right_imgSrc from "@/assets/images/charSprites/profile_1_right.png";
+
+import profile_2_up_imgSrc from "@/assets/images/charSprites/profile_2_up.png";
+import profile_2_down_imgSrc from "@/assets/images/charSprites/profile_2_down.png";
+import profile_2_left_imgSrc from "@/assets/images/charSprites/profile_2_left.png";
+import profile_2_right_imgSrc from "@/assets/images/charSprites/profile_2_right.png";
+
+import profile_3_up_imgSrc from "@/assets/images/charSprites/profile_3_up.png";
+import profile_3_down_imgSrc from "@/assets/images/charSprites/profile_3_down.png";
+import profile_3_left_imgSrc from "@/assets/images/charSprites/profile_3_left.png";
+import profile_3_right_imgSrc from "@/assets/images/charSprites/profile_3_right.png";
+
+import profile_4_up_imgSrc from "@/assets/images/charSprites/profile_4_up.png";
+import profile_4_down_imgSrc from "@/assets/images/charSprites/profile_4_down.png";
+import profile_4_left_imgSrc from "@/assets/images/charSprites/profile_4_left.png";
+import profile_4_right_imgSrc from "@/assets/images/charSprites/profile_4_right.png";
+
+import profile_5_up_imgSrc from "@/assets/images/charSprites/profile_5_up.png";
+import profile_5_down_imgSrc from "@/assets/images/charSprites/profile_5_down.png";
+import profile_5_left_imgSrc from "@/assets/images/charSprites/profile_5_left.png";
+import profile_5_right_imgSrc from "@/assets/images/charSprites/profile_5_right.png";
+
 import collisions from "@/data/collisions";
 import outdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
 import indoorTheme from "@/assets/audio/IndoorTheme.mp3";
@@ -16,10 +44,42 @@ export default {
     return {
       map_imgSrc,
       map_foreground_imgSrc,
-      player_upImgSrc,
-      player_downImgSrc,
-      player_leftImgSrc,
-      player_rightImgSrc,
+      profile_1: {
+        sprite: profile_1_imgSrc,
+        up: profile_1_up_imgSrc,
+        down: profile_1_down_imgSrc,
+        left: profile_1_left_imgSrc,
+        right: profile_1_right_imgSrc
+      },
+      profile_2: {
+        sprite: profile_2_imgSrc,
+        up: profile_2_up_imgSrc,
+        down: profile_2_down_imgSrc,
+        left: profile_2_left_imgSrc,
+        right: profile_2_right_imgSrc
+      },
+      profile_3: {
+        sprite: profile_3_imgSrc,
+        up: profile_3_up_imgSrc,
+        down: profile_3_down_imgSrc,
+        left: profile_3_left_imgSrc,
+        right: profile_3_right_imgSrc
+      },
+      profile_4: {
+        sprite: profile_4_imgSrc,
+        up: profile_4_up_imgSrc,
+        down: profile_4_down_imgSrc,
+        left: profile_4_left_imgSrc,
+        right: profile_4_right_imgSrc
+      },
+      profile_5: {
+        sprite: profile_5_imgSrc,
+        up: profile_5_up_imgSrc,
+        down: profile_5_down_imgSrc,
+        left: profile_5_left_imgSrc,
+        right: profile_5_right_imgSrc
+      },
+
       collisions,
       isPlaying: true,
       outdoorThemePlaying: false,
@@ -44,6 +104,7 @@ export default {
   },
 
   computed: {
+    // Get the controllable player data
     ...mapGetters(['getPlayerData']),
     player() {
       return this.getPlayerData;
@@ -55,24 +116,22 @@ export default {
       if (this.outdoorThemePlaying && this.isPlaying) {
         this.outdoorThemeSong.pause();
         this.isPlaying = false;
-        console.log(this.isPlaying);
         return;
+        
       } else if (this.outdoorThemePlaying && !this.isPlaying) {
         this.outdoorThemeSong.play();
         this.isPlaying = true;
-        console.log(this.isPlaying);
         return;
       }
 
       if (!this.outdoorThemePlaying && this.isPlaying) {
         this.indoorThemeSong.pause();
         this.isPlaying = false;
-        console.log(this.isPlaying);
         return;
+
       } else if (!this.outdoorThemePlaying && !this.isPlaying) {
         this.indoorThemeSong.play();
         this.isPlaying = true;
-        console.log(this.isPlaying);
         return;
       }
       this.$emit("toggle-play");
@@ -82,8 +141,6 @@ export default {
 
   mounted() {
     const vm = this;   
-
-    console.log('Player data received in child component:', this.player.id);
 
     // Start Outdoor music upon mounting of DOM element
     let startRadio = false;
@@ -145,11 +202,13 @@ export default {
     const mapForegroundImage = getImage(map_foreground_imgSrc);
 
     // Player Sprites (added from _1 to _5 depending on which sprite was chosen in character creation)
+    let playerSelectedProfile = 'profile_' +  this.player.sprite;
+
     const playerSprites = {
-      up: getImage(player_upImgSrc),
-      down: getImage(player_downImgSrc),
-      left: getImage(player_leftImgSrc),
-      right: getImage(player_rightImgSrc),
+      up: getImage(this[playerSelectedProfile].up),
+      down: getImage(this[playerSelectedProfile].down),
+      left: getImage(this[playerSelectedProfile].left),
+      right: getImage(this[playerSelectedProfile].right),
     };
 
     //Create new Sprite Class

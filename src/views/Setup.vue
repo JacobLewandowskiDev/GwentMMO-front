@@ -25,7 +25,7 @@ export default {
 
   computed: {
     currentSpriteImg() {
-      return "/src/assets/images/profile_" + this.currentSprite + ".png";
+      return "/src/assets/images/profileSprites/profile_" + this.currentSprite + ".png";
     },
 
     isUsernameValid() {
