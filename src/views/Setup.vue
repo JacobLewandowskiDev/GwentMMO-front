@@ -58,7 +58,7 @@ export default {
     async startGame() {
       if (this.isUsernameValid) {
         const player = { username: this.username, sprite: this.currentSprite };
-
+        console.log(player);
         try {
           const response = await fetch("http://localhost:8080/game", {
             method: "POST",

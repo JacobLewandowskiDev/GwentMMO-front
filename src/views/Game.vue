@@ -33,6 +33,11 @@ import profile_5_down_imgSrc from "@/assets/images/charSprites/profile_5_down.pn
 import profile_5_left_imgSrc from "@/assets/images/charSprites/profile_5_left.png";
 import profile_5_right_imgSrc from "@/assets/images/charSprites/profile_5_right.png";
 
+import profile_6_up_imgSrc from "@/assets/images/charSprites/profile_6_up.png";
+import profile_6_down_imgSrc from "@/assets/images/charSprites/profile_6_down.png";
+import profile_6_left_imgSrc from "@/assets/images/charSprites/profile_6_left.png";
+import profile_6_right_imgSrc from "@/assets/images/charSprites/profile_6_right.png";
+
 import collisions from "@/data/collisions";
 import outdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
 import indoorTheme from "@/assets/audio/IndoorTheme.mp3";
@@ -44,6 +49,9 @@ export default {
     return {
       map_imgSrc,
       map_foreground_imgSrc,
+      collisions,
+      otherPlayers: [],
+
       profile_1: {
         sprite: profile_1_imgSrc,
         up: profile_1_up_imgSrc,
@@ -79,16 +87,24 @@ export default {
         left: profile_5_left_imgSrc,
         right: profile_5_right_imgSrc
       },
+      profile_6: {
+        sprite: profile_6_imgSrc,
+        up: profile_6_up_imgSrc,
+        down: profile_6_down_imgSrc,
+        left: profile_6_left_imgSrc,
+        right: profile_6_right_imgSrc
+      },
 
-      collisions,
       isPlaying: true,
       outdoorThemePlaying: false,
+
       outdoorThemeSong: new Howl({
         src: outdoorTheme,
         html5: true,
         loop: true,
         volume: 0.5,
       }),
+
       indoorThemeSong: new Howl({
         src: indoorTheme,
         html5: true,
@@ -117,7 +133,7 @@ export default {
         this.outdoorThemeSong.pause();
         this.isPlaying = false;
         return;
-        
+
       } else if (this.outdoorThemePlaying && !this.isPlaying) {
         this.outdoorThemeSong.play();
         this.isPlaying = true;
@@ -136,11 +152,39 @@ export default {
       }
       this.$emit("toggle-play");
     },
+
+    // Display Player name above character
+    async getOtherPlayers() {
+      try {
+        const response = await fetch("http://localhost:8080/game", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+
+        if (!response.ok) {
+          throw new Error(`Error fetching players: ${response.statusText}`);
+        }
+
+        // Process the JSON data
+        this.otherPlayers = await response.json();
+        
+        return this.otherPlayers; // Or return if you're calling this from another function 
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
   },
 
 
-  mounted() {
-    const vm = this;   
+ async mounted() {
+    const vm = this;
+
+    await this.getOtherPlayers();
+    console.log("Fetched player 2 data:", this.otherPlayers); 
+
+
 
     // Start Outdoor music upon mounting of DOM element
     let startRadio = false;
@@ -272,6 +316,8 @@ export default {
 
     const playerImage = playerSprites.down;
     const playerOffset = { x: 40, y: 50 };
+
+    // Create Player
     const player = new Sprite({
       image: playerImage,
       position: {
@@ -304,7 +350,7 @@ export default {
       });
     });
 
-    // Candle lights for in-game night time
+    // Candle lights locations for in-game night time
     const circleXY = [
       { x: -405 - playerOffset.x, y: -395 },
       { x: 200 - playerOffset.x, y: -395 },
@@ -625,7 +671,7 @@ export default {
 
 <template>
   <Radio :isPlaying="isPlaying" @click="togglePlay" />
-  <canvas class="canvas" ></canvas>
+  <canvas class="canvas"></canvas>
 </template>
 
 <style scoped>
