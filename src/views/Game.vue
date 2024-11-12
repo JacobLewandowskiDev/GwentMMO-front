@@ -38,18 +38,22 @@ import profile_6_down_imgSrc from "@/assets/images/charSprites/profile_6_down.pn
 import profile_6_left_imgSrc from "@/assets/images/charSprites/profile_6_left.png";
 import profile_6_right_imgSrc from "@/assets/images/charSprites/profile_6_right.png";
 
-import collisions from "@/data/collisions";
 import outdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
 import indoorTheme from "@/assets/audio/IndoorTheme.mp3";
 import Radio from "@/components/Radio.vue";
+
 import { mapGetters } from 'vuex';
+import { dayNightCycle } from '@/logic/day-night-cycle.js';
+import { getOtherPlayers } from '@/logic/other-players.js';
+import { Sprite } from '@/logic/sprite.js'
+import { createBoundry } from "@/logic/boundry";
+import { movePlayer } from '@/logic/player';
 
 export default {
   data() {
     return {
       map_imgSrc,
       map_foreground_imgSrc,
-      collisions,
       otherPlayers: [],
 
       profile_1: {
@@ -114,7 +118,6 @@ export default {
     };
   },
 
-
   components: {
     Radio,
   },
@@ -152,39 +155,11 @@ export default {
       }
       this.$emit("toggle-play");
     },
-
-    // Display Player name above character
-    async getOtherPlayers() {
-      try {
-        const response = await fetch("http://localhost:8080/game", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        }
-      });
-
-        if (!response.ok) {
-          throw new Error(`Error fetching players: ${response.statusText}`);
-        }
-
-        // Process the JSON data
-        this.otherPlayers = await response.json();
-        
-        return this.otherPlayers; // Or return if you're calling this from another function 
-      } catch (error) {
-        console.error("Error:", error);
-      }
-    }
   },
 
 
  async mounted() {
     const vm = this;
-
-    await this.getOtherPlayers();
-    console.log("Fetched player 2 data:", this.otherPlayers); 
-
-
 
     // Start Outdoor music upon mounting of DOM element
     let startRadio = false;
@@ -194,6 +169,7 @@ export default {
       this.outdoorThemePlaying = true;
     }
 
+    //Setup of the canvas and its offset
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -204,6 +180,9 @@ export default {
       x: -2560,
       y: -1880,
     };
+  
+    this.otherPlayers = await getOtherPlayers();
+    console.log("Fetched player 2 data:", this.otherPlayers); 
 
     //Return the image based on img.src
     function getImage(imgSrc) {
@@ -212,42 +191,15 @@ export default {
       return image;
     }
 
-    // Create subarrays for event tiles by slicing main array by num of columns in map (70)
-    function createTileSubArrays(dataArray, newArray) {
-      for (let i = 0; i < dataArray.length; i += 70) {
-        newArray.push(dataArray.slice(i, 70 + i));
-      }
-    }
-
-    // Create subarrays of collision tiles
-    const collisionsMap = [];
-    createTileSubArrays(collisions, collisionsMap);
-
-    //Create new Boundary Class (Tile width & Height = 32px * 270%(Zoom in on map))
-    class Boundary {
-      static eventTileWidth = 32 * 2.7;
-      static eventTileHeight = 32 * 2.7;
-      constructor({ position }) {
-        this.position = position;
-        this.width = Boundary.eventTileWidth;
-        this.height = Boundary.eventTileHeight;
-      }
-
-      draw() {
-        ctx.fillStyle = "rgba(255, 0, 0, 0)";
-        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
-      }
-    }
-
     // Map Image
     const mapImage = getImage(map_imgSrc);
-
     // Foreground Image
     const mapForegroundImage = getImage(map_foreground_imgSrc);
 
-    // Player Sprites (added from _1 to _5 depending on which sprite was chosen in character creation)
+    // PLayer selected sprite -> Impacts which character sprite will be loaded for the champion
     let playerSelectedProfile = 'profile_' +  this.player.sprite;
 
+    // Get player character sprite sheet depending on player profile selection
     const playerSprites = {
       up: getImage(this[playerSelectedProfile].up),
       down: getImage(this[playerSelectedProfile].down),
@@ -255,49 +207,7 @@ export default {
       right: getImage(this[playerSelectedProfile].right),
     };
 
-    //Create new Sprite Class
-    class Sprite {
-      constructor({ image, position, frames = { max: 1 } }) {
-        this.image = image;
-        this.position = position;
-        this.frames = { ...frames, val: 0, elapsed: 0 };
-        this.image.onload = () => {
-          this.width = this.image.width / this.frames.max;
-          this.height = this.image.height;
-        };
-        this.moving = false;
-      }
-
-      draw() {
-        ctx.drawImage(
-          this.image,
-          this.frames.val * this.width,
-          0,
-          this.image.width / this.frames.max,
-          this.image.height,
-          this.position.x,
-          this.position.y,
-          this.image.width / this.frames.max,
-          this.image.height
-        );
-
-        if (this.moving) {
-          if (this.frames.max > 1) {
-            this.frames.elapsed++;
-          }
-
-          if (this.frames.elapsed % 10 == 0) {
-            if (this.frames.val < this.frames.max - 1) {
-              this.frames.val++;
-            } else {
-              this.frames.val = 0;
-            }
-          }
-        }
-      }
-    }
-
-    //Create Map & player object
+    // Create Map object
     const map = new Sprite({
       image: mapImage,
       position: {
@@ -306,6 +216,7 @@ export default {
       },
     });
 
+    // Create foregroundMap object
     const mapForeground = new Sprite({
       image: mapForegroundImage,
       position: {
@@ -313,11 +224,11 @@ export default {
         y: offset.y,
       },
     });
-
+    
+    // Create Player - Default player position and sprite direction
     const playerImage = playerSprites.down;
     const playerOffset = { x: 40, y: 50 };
 
-    // Create Player
     const player = new Sprite({
       image: playerImage,
       position: {
@@ -333,288 +244,6 @@ export default {
       },
     });
 
-    const boundaries = [];
-
-    collisionsMap.forEach((row, i) => {
-      row.forEach((symbol, j) => {
-        if (symbol == 2513) {
-          boundaries.push(
-            new Boundary({
-              position: {
-                x: j * Boundary.eventTileHeight + offset.x,
-                y: i * Boundary.eventTileWidth + offset.y,
-              },
-            })
-          );
-        }
-      });
-    });
-
-    // Candle lights locations for in-game night time
-    const circleXY = [
-      { x: -405 - playerOffset.x, y: -395 },
-      { x: 200 - playerOffset.x, y: -395 },
-      { x: 1238 - playerOffset.x, y: -395 },
-      { x: 1238 - playerOffset.x, y: -1000 },
-      { x: 808 - playerOffset.x, y: -1000 },
-      { x: 720 - playerOffset.x, y: -1000 },
-      { x: 2830 - playerOffset.x, y: -1000 },
-      { x: 200 - playerOffset.x, y: -1000 },
-      { x: 290 - playerOffset.x, y: -1000 },
-    ];
-
-    const candleLight_1 = {
-      radius: 10,
-      fillStyle: "rgba(238,153,17, 0.4)",
-    };
-
-    const candleLight_2 = {
-      radius: 50,
-      fillStyle: "rgba(238,153,17, 0.2)",
-    };
-
-    // Draw the lights for the candles
-    function lights(radius, fillStyle) {
-      ctx.beginPath();
-
-      circleXY.forEach(({ x, y }) => {
-        ctx.moveTo(x + radius, y);
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-      });
-
-      ctx.fillStyle = fillStyle;
-      ctx.fill();
-      ctx.strokeStyle = fillStyle;
-      ctx.stroke();
-    }
-
-    // Check users time of day, and change in-game day/night cycle to match
-    function dayNightCycle() {
-      const date = new Date();
-      let timeOfDay = date.getHours();
-      let isDaytime = timeOfDay >= 7 && timeOfDay < 19;
-
-      if (isDaytime) {
-        ctx.fillStyle = "rgba(12, 20, 124, 0)";
-      } else {
-        ctx.fillStyle = "rgba(12, 20, 124, 0.5)";
-        ctx.fillRect(offset.x, offset.y, map.width, map.height);
-        lights(candleLight_2.radius, candleLight_2.fillStyle);
-        lights(candleLight_1.radius, candleLight_1.fillStyle);
-      }
-    }
-
-    // Player movement
-    let keys = {
-      w: { pressed: false },
-      s: { pressed: false },
-      a: { pressed: false },
-      d: { pressed: false },
-    };
-
-    let lastKey = "";
-    window.addEventListener("keydown", (e) => {
-      switch (e.key) {
-        case "w":
-          lastKey = "w";
-          keys.w.pressed = true;
-          break;
-
-        case "s":
-          lastKey = "s";
-          keys.s.pressed = true;
-          break;
-
-        case "a":
-          lastKey = "a";
-          keys.a.pressed = true;
-          break;
-
-        case "d":
-          lastKey = "d";
-          keys.d.pressed = true;
-          break;
-      }
-    });
-
-    window.addEventListener("keyup", (e) => {
-      switch (e.key) {
-        case "w":
-          keys.w.pressed = false;
-          player.moving = false;
-          player.frames.val = 0;
-          break;
-
-        case "s":
-          keys.s.pressed = false;
-          player.moving = false;
-          player.frames.val = 0;
-          break;
-
-        case "a":
-          keys.a.pressed = false;
-          player.moving = false;
-          player.frames.val = 0;
-          break;
-
-        case "d":
-          keys.d.pressed = false;
-          player.moving = false;
-          player.frames.val = 0;
-          break;
-      }
-    });
-
-    let isPlayerInside = false;
-
-    function changeSongs() {
-      const playerX = player.position.x;
-      const playerY = player.position.y;
-
-      // Determine if the player is inside or outside
-      const insideBoundary = playerX < 800 && playerX > 440 && playerY < -330;
-      const outsideBoundary = playerX < 800 && playerX > 440 && playerY > -130;
-
-      if (insideBoundary && !isPlayerInside && vm.outdoorThemePlaying) {
-        vm.outdoorThemeSong.pause();
-        if(vm.isPlaying) {
-          vm.indoorThemeSong.play();
-        }
-        vm.outdoorThemePlaying = false;
-        isPlayerInside = true; // Update state to inside
-      } else if (outsideBoundary && isPlayerInside && !vm.outdoorThemePlaying) {
-        vm.indoorThemeSong.pause();
-        if(vm.isPlaying) {
-          vm.outdoorThemeSong.play();
-        }
-        vm.outdoorThemePlaying = true;
-        isPlayerInside = false; // Update state to outside
-      }
-    }
-
-    function move() {
-      let moving = true;
-      if (keys.w.pressed && lastKey == "w") {
-        player.image = playerSprites.up;
-        changeSongs();
-        for (let i = 0; i < boundaries.length; i++) {
-          const boundary = boundaries[i];
-          if (
-            playerCollision({
-              player: player,
-              boundary: {
-                ...boundary,
-                position: {
-                  x: boundary.position.x,
-                  y: boundary.position.y + 4,
-                },
-              },
-            })
-          ) {
-            moving = false;
-            player.moving = false;
-            player.frames.val = 0;
-            break;
-          }
-        }
-        if (moving == true) {
-          player.position.y -= 4;
-          ctx.translate(0, 4);
-          player.moving = true;
-        }
-      }
-
-      if (keys.s.pressed && lastKey == "s") {
-        player.image = playerSprites.down;
-        changeSongs();
-        for (let i = 0; i < boundaries.length; i++) {
-          const boundary = boundaries[i];
-          if (
-            playerCollision({
-              player: player,
-              boundary: {
-                ...boundary,
-                position: {
-                  x: boundary.position.x,
-                  y: boundary.position.y - 4,
-                },
-              },
-            })
-          ) {
-            moving = false;
-            player.moving = false;
-            player.frames.val = 0;
-            break;
-          }
-        }
-        if (moving == true) {
-          player.position.y += 4;
-          ctx.translate(0, -4);
-          player.moving = true;
-        }
-      }
-
-      if (keys.a.pressed && lastKey == "a") {
-        player.image = playerSprites.left;
-        changeSongs();
-        for (let i = 0; i < boundaries.length; i++) {
-          const boundary = boundaries[i];
-          if (
-            playerCollision({
-              player: player,
-              boundary: {
-                ...boundary,
-                position: {
-                  x: boundary.position.x + 4,
-                  y: boundary.position.y,
-                },
-              },
-            })
-          ) {
-            moving = false;
-            player.moving = false;
-            player.frames.val = 0;
-            break;
-          }
-        }
-        if (moving == true) {
-          player.position.x -= 4;
-          ctx.translate(4, 0);
-          player.moving = true;
-        }
-      }
-
-      if (keys.d.pressed && lastKey == "d") {
-        player.image = playerSprites.right;
-        changeSongs();
-        for (let i = 0; i < boundaries.length; i++) {
-          const boundary = boundaries[i];
-          if (
-            playerCollision({
-              player: player,
-              boundary: {
-                ...boundary,
-                position: {
-                  x: boundary.position.x - 4,
-                  y: boundary.position.y,
-                },
-              },
-            })
-          ) {
-            moving = false;
-            player.moving = false;
-            player.frames.val = 0;
-            break;
-          }
-        }
-        if (moving == true) {
-          player.position.x += 4;
-          ctx.translate(-4, 0);
-          player.moving = true;
-        }
-      }
-    }
-
     //For testing purposes only (remove once everything works as should)
     window.addEventListener("keydown", (e) => {
       if (e.key == "Enter") {
@@ -629,40 +258,27 @@ export default {
         );
       }
     });
-
-    //Check if player is in range of collisions or interactible objects
-    function playerCollision({ player, boundary }) {
-      return (
-        player.position.x + player.width >= boundary.position.x &&
-        player.position.x <= boundary.position.x + boundary.width &&
-        player.position.y >= boundary.position.y - boundary.height &&
-        player.position.y - player.width <= boundary.position.y
-      );
-    }
+    
+    //Create Player movement boundries
+    const boundaries = createBoundry(offset); 
 
     //Game Loop
     function game() {
       window.requestAnimationFrame(game);
-      map.draw();
-      player.draw();
-      mapForeground.draw();
+      map.draw(ctx);
+      player.draw(ctx);
+      mapForeground.draw(ctx);
       boundaries.forEach((boundary) => {
-        boundary.draw();
+        boundary.draw(ctx);
       });
 
-      dayNightCycle();
+      dayNightCycle(playerOffset, ctx, offset, map);
       // Move player
-      move();
+      movePlayer(player, playerSprites, boundaries, ctx, vm);
     }
     //Initiate the Game once
     let runOnce = false;
     if (!runOnce) {
-      game();
-    }
-
-    //Re-draw everything (When user comes back from a game of gwent)
-    function redraw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
       game();
     }
   },
