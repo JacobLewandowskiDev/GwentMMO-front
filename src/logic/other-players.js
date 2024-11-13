@@ -1,6 +1,8 @@
- // Display Player name above character
+// List of other players on the server
+let otherPlayers = [];
+
+// Get a list of all Players on the server.
  export async function getOtherPlayers() {
-    let otherPlayers = [];
     try {
       const response = await fetch("http://localhost:8080/game", {
       method: "GET",
@@ -21,3 +23,4 @@
       console.error("Error:", error);
     }
   }
+

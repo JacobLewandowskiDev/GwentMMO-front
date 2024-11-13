@@ -1,3 +1,28 @@
+import { Sprite } from "@/logic/sprite.js";
+
+
+  // Create Player
+  export function createPlayer(playerSprites, playerDrawingOffset, canvas, playerUsername) {
+    const player = new Sprite({
+      image: playerSprites.down,
+      position: {
+        x: canvas.width / 2 - playerSprites.down.width / 8 - playerDrawingOffset.x,
+        y: canvas.height / 2 - playerSprites.down.height / 2 - playerDrawingOffset.y,
+      },
+      frames: { max: 4 },
+      playerSprites: {
+        up: playerSprites.up,
+        down: playerSprites.down,
+        left: playerSprites.left,
+        right: playerSprites.right,
+      },
+      username: playerUsername
+    });
+
+    return player;
+  }
+  
+
 let playerData = null;
 
 // Player movement
@@ -9,44 +34,38 @@ let keys = {
 };
 
 let lastKey = "";
-window.addEventListener("keydown", (e) => {
+export function handleKeyDown(e) {
+  // Keydown logic
   switch (e.key) {
     case "w":
       lastKey = "w";
       keys.w.pressed = true;
       break;
-
     case "s":
       lastKey = "s";
       keys.s.pressed = true;
       break;
-
     case "a":
       lastKey = "a";
       keys.a.pressed = true;
       break;
-
     case "d":
       lastKey = "d";
       keys.d.pressed = true;
       break;
   }
-});
+}
 
-window.addEventListener("keyup", (e) => {
-  switch (e.key) {
-    case "w":
-    case "s":
-    case "a":
-    case "d":
-      keys[e.key].pressed = false;
-      if (playerData != null) {
-        playerData.moving = false;
-        playerData.frames.val = 0;
-      }
-      break;
+export function handleKeyUp(e) {
+  // Keyup logic
+  if (["w", "s", "a", "d"].includes(e.key)) {
+    keys[e.key].pressed = false;
+    if (playerData != null) {
+      playerData.moving = false;
+      playerData.frames.val = 0;
+    }
   }
-});
+}
 
 export function movePlayer(player, playerSprites, boundaries, ctx, vm) {
   playerData = player;

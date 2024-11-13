@@ -47,13 +47,15 @@ import { dayNightCycle } from '@/logic/day-night-cycle.js';
 import { getOtherPlayers } from '@/logic/other-players.js';
 import { Sprite } from '@/logic/sprite.js'
 import { createBoundry } from "@/logic/boundry";
-import { movePlayer } from '@/logic/player';
+import { createPlayer, movePlayer } from '@/logic/player';
+import { handleKeyDown, handleKeyUp } from '@/logic/player.js';
 
 export default {
   data() {
     return {
       map_imgSrc,
       map_foreground_imgSrc,
+      playerData: null,
       otherPlayers: [],
 
       profile_1: {
@@ -159,6 +161,11 @@ export default {
 
 
  async mounted() {
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    this.playerData = this.player;
+
     const vm = this;
 
     // Start Outdoor music upon mounting of DOM element
@@ -182,7 +189,8 @@ export default {
     };
   
     this.otherPlayers = await getOtherPlayers();
-    console.log("Fetched player 2 data:", this.otherPlayers); 
+    console.log("Fetched controllable player data:", this.playerData); 
+    console.log("Fetched all player data:", this.otherPlayers); 
 
     //Return the image based on img.src
     function getImage(imgSrc) {
@@ -195,17 +203,6 @@ export default {
     const mapImage = getImage(map_imgSrc);
     // Foreground Image
     const mapForegroundImage = getImage(map_foreground_imgSrc);
-
-    // PLayer selected sprite -> Impacts which character sprite will be loaded for the champion
-    let playerSelectedProfile = 'profile_' +  this.player.sprite;
-
-    // Get player character sprite sheet depending on player profile selection
-    const playerSprites = {
-      up: getImage(this[playerSelectedProfile].up),
-      down: getImage(this[playerSelectedProfile].down),
-      left: getImage(this[playerSelectedProfile].left),
-      right: getImage(this[playerSelectedProfile].right),
-    };
 
     // Create Map object
     const map = new Sprite({
@@ -225,33 +222,32 @@ export default {
       },
     });
     
-    // Create Player - Default player position and sprite direction
-    const playerImage = playerSprites.down;
-    const playerOffset = { x: 40, y: 50 };
+    // PLayer selected sprite -> Impacts which character sprite will be loaded for the champion
+    let playerSelectedProfile = 'profile_' +  this.playerData.sprite;
 
-    const player = new Sprite({
-      image: playerImage,
-      position: {
-        x: canvas.width / 2 - playerImage.width / 8 - playerOffset.x,
-        y: canvas.height / 2 - playerImage.height / 2 - playerOffset.y,
-      },
-      frames: { max: 4 },
-      playerSprites: {
-        up: playerSprites.up,
-        down: playerSprites.down,
-        left: playerSprites.left,
-        right: playerSprites.right,
-      },
-    });
+    // Get player character sprite sheet depending on player profile selection
+    const playerSprites = {
+      up: getImage(this[playerSelectedProfile].up),
+      down: getImage(this[playerSelectedProfile].down),
+      left: getImage(this[playerSelectedProfile].left),
+      right: getImage(this[playerSelectedProfile].right),
+    };
+
+    // Create Player - Default player sprite direction and drawing offset.
+    const defaultPlayerSprite = playerSprites.down;
+    const playerDrawingOffset = { x: 40, y: 50 };
+
+    let playerUsername = this.playerData.username;
+    const playerCharacter = await createPlayer(playerSprites, playerDrawingOffset, canvas, playerUsername);
 
     //For testing purposes only (remove once everything works as should)
     window.addEventListener("keydown", (e) => {
       if (e.key == "Enter") {
         console.log(
           "Player_1 Position: X:" +
-            player.position.x +
+            playerCharacter.position.x +
             ", Y:" +
-            player.position.y
+            playerCharacter.position.y
         );
         console.log(
           "Canvas Position: X:" + map.position.x + ", Y:" + map.position.y
@@ -262,19 +258,19 @@ export default {
     //Create Player movement boundries
     const boundaries = createBoundry(offset); 
 
-    //Game Loop
-    function game() {
+   //Game Loop
+   function game() {
       window.requestAnimationFrame(game);
       map.draw(ctx);
-      player.draw(ctx);
+      playerCharacter.draw(ctx);
       mapForeground.draw(ctx);
+      playerCharacter.drawUsername(ctx);
       boundaries.forEach((boundary) => {
         boundary.draw(ctx);
       });
 
-      dayNightCycle(playerOffset, ctx, offset, map);
-      // Move player
-      movePlayer(player, playerSprites, boundaries, ctx, vm);
+      dayNightCycle(playerDrawingOffset, ctx, offset, map);
+      movePlayer(playerCharacter, playerSprites, boundaries, ctx, vm);
     }
     //Initiate the Game once
     let runOnce = false;
@@ -282,6 +278,12 @@ export default {
       game();
     }
   },
+
+  beforeUnmount() {
+    // Remove event listeners when the component is about to unmount
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keyup", handleKeyUp);
+  }
 };
 </script>
 
