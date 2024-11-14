@@ -42,21 +42,41 @@ export class Sprite {
   }
 
   drawUsername(ctx) {
-    // Draw the username above the sprite
     if (this.username) {
       ctx.font = "400 1.3rem Bangers";
-      ctx.lineWidth = .6;
+      ctx.lineWidth = 0.6;
       ctx.strokeStyle = "black";
       ctx.textAlign = "center";
-      const textX = this.position.x + this.width / 2; // Position Username center of character
+      
+      const textX = this.position.x + this.width / 2; // Center text above character
       const textY = this.position.y - 10; // Position the text above the sprite
+  
+      // Measure text width for background
+      const textWidth = ctx.measureText(this.username).width;
+      const padding = 5;
+      const rectX = textX - textWidth / 2 - padding;
+      const rectY = textY - 18 - padding;
+      const rectWidth = textWidth + padding * 2;
+      const rectHeight = 30;
+      const cornerRadius = 5; // Radius for rounded corners
+  
+      // Draw rounded rectangle as background
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.beginPath();
+      ctx.moveTo(rectX + cornerRadius, rectY);
+      ctx.lineTo(rectX + rectWidth - cornerRadius, rectY);
+      ctx.quadraticCurveTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + cornerRadius);
+      ctx.lineTo(rectX + rectWidth, rectY + rectHeight - cornerRadius);
+      ctx.quadraticCurveTo(rectX + rectWidth, rectY + rectHeight, rectX + rectWidth - cornerRadius, rectY + rectHeight);
+      ctx.lineTo(rectX + cornerRadius, rectY + rectHeight);
+      ctx.quadraticCurveTo(rectX, rectY + rectHeight, rectX, rectY + rectHeight - cornerRadius);
+      ctx.lineTo(rectX, rectY + cornerRadius);
+      ctx.quadraticCurveTo(rectX, rectY, rectX + cornerRadius, rectY);
+      ctx.closePath();
+      ctx.fill();
+  
+      // Draw username text
       ctx.strokeText(this.username, textX, textY);
-
-      ctx.fillStyle = "rgba(0, 0, 0, 0.3)"; // Dark gray with 50% transparency
-      const textWidth = ctx.measureText(this.username).width; // Get text width for background
-      const padding = 5; // Padding around text
-      ctx.fillRect(textX - textWidth / 2 - padding, textY - 18 - padding, textWidth + padding * 2, 30); // Draw rectangle as background
-
       ctx.fillStyle = "White";
       ctx.fillText(this.username, textX, textY);
     }

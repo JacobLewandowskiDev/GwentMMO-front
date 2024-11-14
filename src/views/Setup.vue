@@ -19,7 +19,8 @@ export default {
       playerData: null,
       username: "",
       currentSprite: 1,
-      maxSprite: 6, //Change this value to whatever the number of profile pictures of characters there is
+      maxSprite: 6, // Current number of character Profiles available for selection
+      socket: null
     };
   },
 
@@ -73,7 +74,22 @@ export default {
             if (data.username === this.username && data.sprite === this.currentSprite) {
               this.$emit("stop-music"); // Stop Main menu music
               this.updatePlayerData(data);
-              this.$router.push({name: 'Game'})
+
+              this.socket = new WebSocket("ws://localhost:8080/app/move")
+
+              this.socket.onopen = () => {
+              console.log("WebSocket connection opened");
+              this.$router.push({ name: 'Game', params: { socket: this.socket } });
+              };
+            
+              this.socket.onmessage = (event) => {
+              const message = JSON.parse(event.data);
+              console.log("Received message:", message);
+            };
+
+            this.socket.onclose = () => {
+              console.log("WebSocket connection closed");
+            };
             } else {
               throw new Error("Username or sprite does not match the submitted data.");
             }
