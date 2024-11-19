@@ -1,6 +1,8 @@
 <script>
+import { Stomp } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 import Game from "../views/Game.vue";
-import { mapActions } from 'vuex';
+import { mapActions } from "vuex";
 
 export default {
   props: {
@@ -19,14 +21,14 @@ export default {
       playerData: null,
       username: "",
       currentSprite: 1,
-      maxSprite: 6, // Current number of character Profiles available for selection
-      socket: null
+      maxSprite: 6,
+      stompClient: null,
     };
   },
 
   computed: {
     currentSpriteImg() {
-      return "/src/assets/images/profileSprites/profile_" + this.currentSprite + ".png";
+      return `/src/assets/images/profileSprites/profile_${this.currentSprite}.png`;
     },
 
     isUsernameValid() {
@@ -43,8 +45,8 @@ export default {
   emits: ["stop-music"],
 
   methods: {
-    ...mapActions(['updatePlayerData']),
-    
+    ...mapActions(["updatePlayerData", "updateSocket"]),
+
     getSprite(option) {
       if (option === "prev") {
         this.currentSprite =
@@ -55,7 +57,6 @@ export default {
       }
     },
 
-    // Create a new player, check if username exists (If so, throw error), else GET request to start game and open websocket connection to the server.
     async startGame() {
       if (this.isUsernameValid) {
         const player = { username: this.username, sprite: this.currentSprite };
@@ -72,35 +73,35 @@ export default {
             const data = await response.json();
 
             if (data.username === this.username && data.sprite === this.currentSprite) {
-              this.$emit("stop-music"); // Stop Main menu music
+              this.$emit("stop-music"); // Stop main menu music
               this.updatePlayerData(data);
 
-              this.socket = new WebSocket("ws://localhost:8080/app/move")
+              // Initialize SockJS connection
+              const socket = new SockJS("http://localhost:8080/game-socket"); // SockJS URL
+              
+              // Initialize STOMP client with the SockJS connection factory
+              this.stompClient = Stomp.over(() => socket);  // Provide a factory function for SockJS
 
-              this.socket.onopen = () => {
-              console.log("WebSocket connection opened");
-              this.$router.push({ name: 'Game', params: { socket: this.socket } });
-              };
-            
-              this.socket.onmessage = (event) => {
-              const message = JSON.parse(event.data);
-              console.log("Received message:", message);
-            };
+              // Configure the STOMP client
+              this.stompClient.connect({}, (frame) => {
+                console.log("STOMP connection established", frame);
+                this.updateSocket(this.stompClient); // Store STOMP client in Vuex
+                this.$router.push({ name: "Game" });
 
-            this.socket.onclose = () => {
-              console.log("WebSocket connection closed");
-            };
+                // Subscribe to player updates
+                this.stompClient.subscribe("/topic/player-updates", (message) => {
+                  console.log("Player update received:", JSON.parse(message.body));
+                });
+              }, (error) => {
+                console.error("STOMP error:", error);
+              });
+
             } else {
               throw new Error("Username or sprite does not match the submitted data.");
             }
           } else {
-            alert(
-              "User under this username already exists, please pick a different one."
-            );
-            throw new Error(
-              "Username taken - Failed to create new Player, status: " +
-                response.status
-            );
+            alert("User under this username already exists, please pick a different one.");
+            throw new Error("Username taken - Failed to create new Player, status: " + response.status);
           }
         } catch (error) {
           console.error("Error:", error);

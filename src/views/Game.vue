@@ -126,10 +126,14 @@ export default {
 
   computed: {
     // Get the controllable player data
-    ...mapGetters(['getPlayerData']),
+    ...mapGetters(['getPlayerData', 'getSocket']),
     player() {
       return this.getPlayerData;
     },
+
+    playerSocket() {
+      return this.getSocket;
+    }
   },
 
   methods: {
@@ -165,6 +169,16 @@ export default {
     window.addEventListener("keyup", handleKeyUp);
 
     this.playerData = this.player;
+
+    if (this.playerSocket) {
+    this.playerSocket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      console.log("Received message:", message);
+      // Handle the message as needed
+    };
+  } else {
+    console.error("WebSocket connection is not available.");
+  }
 
     const vm = this;
 
