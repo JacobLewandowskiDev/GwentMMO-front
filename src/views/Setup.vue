@@ -99,9 +99,12 @@ export default {
             } else {
               throw new Error("Username or sprite does not match the submitted data.");
             }
-          } else {
+          } else if(response.status == 409){
             alert("User under this username already exists, please pick a different one.");
             throw new Error("Username taken - Failed to create new Player, status: " + response.status);
+          } else if(response.status == 429){
+            alert("The Server is Full. Please try again later.");
+            throw new Error("The Server is Full. Please try again later, status: " + response.status);
           }
         } catch (error) {
           console.error("Error:", error);
