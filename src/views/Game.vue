@@ -42,7 +42,7 @@ import outdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
 import indoorTheme from "@/assets/audio/IndoorTheme.mp3";
 import Radio from "@/components/Radio.vue";
 
-import { mapGetters } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 import { dayNightCycle } from '@/logic/day-night-cycle.js';
 import { getOtherPlayers } from '@/logic/other-players.js';
 import { Sprite } from '@/logic/sprite.js'
@@ -161,10 +161,43 @@ export default {
       }
       this.$emit("toggle-play");
     },
+
+    ...mapActions(["updateSocket"]),
+
+    handleBeforeUnload() {
+      console.log("Before unload triggered");
+      this.disconnectWebSocket();
+    },
+
+    disconnectWebSocket() {
+      if (this.playerSocket && this.playerSocket.connected) {
+      console.log("Notifying server and disconnecting WebSocket...");
+      this.playerSocket.send(
+         "/app/player-disconnect",
+         {},
+         JSON.stringify({ 'id': this.playerData.id })
+      );
+
+      this.playerSocket.disconnect(() => {
+         console.log("WebSocket disconnected successfully");
+         this.updateSocket(null); // Clear socket state
+      });
+   } else {
+      console.warn("No active WebSocket connection to disconnect.");
+   }
+    }
   },
 
+  beforeUnmount() {
+    // Remove event listeners when the component is about to unmount
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keyup", handleKeyUp);
+    window.removeEventListener("beforeunload", this.handleBeforeUnload);
+    this.disconnectWebSocket();
+  },
 
  async mounted() {
+    window.addEventListener("beforeunload", this.handleBeforeUnload);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
@@ -174,7 +207,6 @@ export default {
     this.playerSocket.onmessage = (event) => {
       const message = JSON.parse(event.data);
       console.log("Received message:", message);
-      // Handle the message as needed
     };
   } else {
     console.error("WebSocket connection is not available.");
@@ -293,11 +325,7 @@ export default {
     }
   },
 
-  beforeUnmount() {
-    // Remove event listeners when the component is about to unmount
-    window.removeEventListener("keydown", handleKeyDown);
-    window.removeEventListener("keyup", handleKeyUp);
-  }
+  
 };
 </script>
 

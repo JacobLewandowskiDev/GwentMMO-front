@@ -75,26 +75,30 @@ export default {
             if (data.username === this.username && data.sprite === this.currentSprite) {
               this.$emit("stop-music"); // Stop main menu music
               this.updatePlayerData(data);
+              console.log(data);
 
               // Initialize SockJS connection
               const socket = new SockJS("http://localhost:8080/game-socket"); // SockJS URL
               
-              // Initialize STOMP client with the SockJS connection factory
               this.stompClient = Stomp.over(() => socket);  // Provide a factory function for SockJS
 
               // Configure the STOMP client
-              this.stompClient.connect({}, (frame) => {
-                console.log("STOMP connection established", frame);
-                this.updateSocket(this.stompClient); // Store STOMP client in Vuex
-                this.$router.push({ name: "Game" });
+              this.stompClient.connect(
+                { 'id': data.id },  // Ensure this is set in the correct place
+                (frame) => {
+                  console.log("STOMP connection established", frame);
+                  this.updateSocket(this.stompClient);  // Store STOMP client in Vuex
+                  this.$router.push({ name: "Game" });
 
-                // Subscribe to player updates
-                this.stompClient.subscribe("/topic/player-updates", (message) => {
-                  console.log("Player update received:", JSON.parse(message.body));
-                });
-              }, (error) => {
-                console.error("STOMP error:", error);
-              });
+                  // Subscribe to player updates
+                  this.stompClient.subscribe("/topic/player-updates", (message) => {
+                    console.log("Player update received:", JSON.parse(message.body));
+                  });
+                },
+                (error) => {
+                  console.error("STOMP error:", error);
+                }
+              );
 
             } else {
               throw new Error("Username or sprite does not match the submitted data.");
