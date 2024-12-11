@@ -175,16 +175,16 @@ export default {
       this.playerSocket.send(
          "/app/player-disconnect",
          {},
-         JSON.stringify({ 'id': this.playerData.id })
+         JSON.stringify({ playerId: this.playerData.id })
       );
 
       this.playerSocket.disconnect(() => {
          console.log("WebSocket disconnected successfully");
          this.updateSocket(null); // Clear socket state
       });
-   } else {
-      console.warn("No active WebSocket connection to disconnect.");
-   }
+      } else {
+          console.warn("No active WebSocket connection to disconnect.");
+      }
     }
   },
 

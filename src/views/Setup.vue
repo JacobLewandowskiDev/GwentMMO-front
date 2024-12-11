@@ -84,7 +84,7 @@ export default {
 
               // Configure the STOMP client
               this.stompClient.connect(
-                { 'id': data.id },  // Ensure this is set in the correct place
+                { playerId: data.id },  // Ensure this is set in the correct place
                 (frame) => {
                   console.log("STOMP connection established", frame);
                   this.updateSocket(this.stompClient);  // Store STOMP client in Vuex
