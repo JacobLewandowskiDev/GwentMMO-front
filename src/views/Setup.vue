@@ -73,27 +73,18 @@ export default {
             const data = await response.json();
 
             if (data.username === this.username && data.sprite === this.currentSprite) {
-              this.$emit("stop-music"); // Stop main menu music
+              this.$emit("stop-music");
               this.updatePlayerData(data);
-              console.log(data);
 
               // Initialize SockJS connection
-              const socket = new SockJS("http://localhost:8080/game-socket"); // SockJS URL
-              
-              this.stompClient = Stomp.over(() => socket);  // Provide a factory function for SockJS
+              const socket = new SockJS("http://localhost:8080/game-socket");
+              this.stompClient = Stomp.over(() => socket);
 
-              // Configure the STOMP client
               this.stompClient.connect(
-                { playerId: data.id },  // Ensure this is set in the correct place
+                { playerId: data.id },
                 (frame) => {
-                  console.log("STOMP connection established", frame);
-                  this.updateSocket(this.stompClient);  // Store STOMP client in Vuex
+                  this.updateSocket(this.stompClient);
                   this.$router.push({ name: "Game" });
-
-                  // Subscribe to player updates
-                  this.stompClient.subscribe("/topic/player-updates", (message) => {
-                    console.log("Player update received:", JSON.parse(message.body));
-                  });
                 },
                 (error) => {
                   console.error("STOMP error:", error);

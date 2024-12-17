@@ -1,6 +1,5 @@
 import { Sprite } from "@/logic/sprite.js";
 
-
   // Create Player
   export function createPlayer(playerSprites, playerDrawingOffset, canvas, playerUsername) {
     const player = new Sprite({
@@ -21,9 +20,8 @@ import { Sprite } from "@/logic/sprite.js";
 
     return player;
   }
-  
 
-let playerData = null;
+let playerStatus = null;
 
 // Player movement
 let keys = {
@@ -60,15 +58,15 @@ export function handleKeyUp(e) {
   // Keyup logic
   if (["w", "s", "a", "d"].includes(e.key)) {
     keys[e.key].pressed = false;
-    if (playerData != null) {
-      playerData.moving = false;
-      playerData.frames.val = 0;
+    if (playerStatus != null) {
+      playerStatus.moving = false;
+      playerStatus.frames.val = 0;
     }
   }
 }
 
-export function movePlayer(player, playerSprites, boundaries, ctx, vm) {
-  playerData = player;
+export function movePlayer(playerData, playerSocket, player, playerSprites, boundaries, ctx, vm) {
+  playerStatus = player;
   let moving = true;
   if (keys.w.pressed && lastKey == "w") {
     player.image = playerSprites.up;
@@ -97,6 +95,7 @@ export function movePlayer(player, playerSprites, boundaries, ctx, vm) {
       player.position.y -= 4;
       ctx.translate(0, 4);
       player.moving = true;
+      sendMovementUpdate(playerData, playerSocket, player.position.x, player.position.y);
     }
   }
 
@@ -127,6 +126,7 @@ export function movePlayer(player, playerSprites, boundaries, ctx, vm) {
       player.position.y += 4;
       ctx.translate(0, -4);
       player.moving = true;
+      sendMovementUpdate(playerData, playerSocket, player.position.x, player.position.y);
     }
   }
 
@@ -157,6 +157,7 @@ export function movePlayer(player, playerSprites, boundaries, ctx, vm) {
       player.position.x -= 4;
       ctx.translate(4, 0);
       player.moving = true;
+      sendMovementUpdate(playerData, playerSocket, player.position.x, player.position.y);
     }
   }
 
@@ -187,6 +188,7 @@ export function movePlayer(player, playerSprites, boundaries, ctx, vm) {
       player.position.x += 4;
       ctx.translate(-4, 0);
       player.moving = true;
+      sendMovementUpdate(playerData, playerSocket, player.position.x, player.position.y);
     }
   }
 }
@@ -225,5 +227,26 @@ function changeSongs(player, vm) {
     }
     vm.outdoorThemePlaying = true;
     isPlayerInside = false; // Update state to outside
+  }
+}
+
+
+let lastUpdateTime = 0;
+
+export function sendMovementUpdate(player, playerSocket, x, y,  interval = 500) {
+  const now = Date.now();
+  if (now - lastUpdateTime >= interval) {
+    lastUpdateTime = now;
+
+    if (player && playerSocket) {
+      playerSocket.send("/app/player-move", {}, JSON.stringify({
+        playerId: player.id,
+        username: player.username,
+        playerPositionX: x,
+        playerPositionY: y,
+      }));
+    } else {
+      console.error("Player or playerSocket is not initialized.");
+    }
   }
 }

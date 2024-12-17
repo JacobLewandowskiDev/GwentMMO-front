@@ -126,13 +126,34 @@ export default {
 
   computed: {
     // Get the controllable player data
-    ...mapGetters(['getPlayerData', 'getSocket']),
+    ...mapGetters(['updatePlayerData', 'getPlayerData', 'getSocket']),
     player() {
       return this.getPlayerData;
     },
 
     playerSocket() {
       return this.getSocket;
+    }
+  },
+
+  mounted() {
+    const socket = this.playerSocket;
+
+    if (socket) {
+      socket.connect({}, (frame) => {
+        socket.subscribe("/topic/player-updates", (message) => {
+          const data = JSON.parse(message.body);
+          console.log("Player update received:", data);
+
+          // Handle player updates (e.g., update position, stats, etc.)
+          this.updatePlayerData(data);
+        });
+      });
+
+      socket.subscribe('/topic/movement', (message) => {
+        const movementData = JSON.parse(message.body);
+        this.updatePlayerPosition(movementData);
+      });
     }
   },
 
@@ -164,6 +185,10 @@ export default {
 
     ...mapActions(["updateSocket"]),
 
+    updatePlayerPosition(movementData) {
+      console.log("Movement data received:", movementData);
+    },
+
     handleBeforeUnload() {
       console.log("Before unload triggered");
       this.disconnectWebSocket();
@@ -171,7 +196,6 @@ export default {
 
     disconnectWebSocket() {
       if (this.playerSocket && this.playerSocket.connected) {
-      console.log("Notifying server and disconnecting WebSocket...");
       this.playerSocket.send(
          "/app/player-disconnect",
          {},
@@ -185,7 +209,7 @@ export default {
       } else {
           console.warn("No active WebSocket connection to disconnect.");
       }
-    }
+    },
   },
 
   beforeUnmount() {
@@ -280,7 +304,6 @@ export default {
     };
 
     // Create Player - Default player sprite direction and drawing offset.
-    const defaultPlayerSprite = playerSprites.down;
     const playerDrawingOffset = { x: 40, y: 50 };
 
     let playerUsername = this.playerData.username;
@@ -290,7 +313,8 @@ export default {
     window.addEventListener("keydown", (e) => {
       if (e.key == "Enter") {
         console.log(
-          "Player_1 Position: X:" +
+            this.playerData.username +
+            " Position: X:" +
             playerCharacter.position.x +
             ", Y:" +
             playerCharacter.position.y
@@ -305,7 +329,7 @@ export default {
     const boundaries = createBoundry(offset); 
 
    //Game Loop
-   function game() {
+   const game = () => {
       window.requestAnimationFrame(game);
       map.draw(ctx);
       playerCharacter.draw(ctx);
@@ -316,11 +340,14 @@ export default {
       });
 
       dayNightCycle(playerDrawingOffset, ctx, offset, map);
-      movePlayer(playerCharacter, playerSprites, boundaries, ctx, vm);
+      const socket = this.$store.getters.getSocket; 
+      movePlayer(this.player, socket, playerCharacter, playerSprites, boundaries, ctx, vm);
     }
+
     //Initiate the Game once
     let runOnce = false;
     if (!runOnce) {
+      await this.playerData;
       game();
     }
   },
