@@ -21,15 +21,16 @@ let otherPlayers = [];
       return otherPlayers; // Or return if you're calling this from another function 
     } catch (error) {
       console.error("Error:", error);
+      return [];
     }
   }
 
   function updatePlayerPosition(movementData) {
-    const otherPlayer = otherPlayers.find(p => p.id === movementData.playerId);
-    if (otherPlayer) {
+    const existing = otherPlayers.find(p => p.id === movementData.playerId);
+    if (existing) {
         // Update existing player's position
-        otherPlayer.x = movementData.playerPositionX;
-        otherPlayer.y = movementData.playerPositionY;
+        existing.x = movementData.playerPositionX;
+        existing.y = movementData.playerPositionY;
     } else {
         // Add new player to the list if not found
         otherPlayers.push({

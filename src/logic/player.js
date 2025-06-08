@@ -80,7 +80,7 @@ export function movePlayer(playerData, playerSocket, player, playerSprites, boun
             ...boundary,
             position: {
               x: boundary.position.x,
-              y: boundary.position.y + 4,
+              y: boundary.position.y + 8,
             },
           },
         })
@@ -111,7 +111,7 @@ export function movePlayer(playerData, playerSocket, player, playerSprites, boun
             ...boundary,
             position: {
               x: boundary.position.x,
-              y: boundary.position.y - 4,
+              y: boundary.position.y - 12,
             },
           },
         })
@@ -141,7 +141,7 @@ export function movePlayer(playerData, playerSocket, player, playerSprites, boun
           boundary: {
             ...boundary,
             position: {
-              x: boundary.position.x + 4,
+              x: boundary.position.x + 8,
               y: boundary.position.y,
             },
           },
@@ -172,7 +172,7 @@ export function movePlayer(playerData, playerSocket, player, playerSprites, boun
           boundary: {
             ...boundary,
             position: {
-              x: boundary.position.x - 4,
+              x: boundary.position.x - 8,
               y: boundary.position.y,
             },
           },

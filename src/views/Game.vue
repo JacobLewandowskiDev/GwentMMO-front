@@ -257,10 +257,6 @@ export default {
       x: -2560,
       y: -1880,
     };
-  
-    this.otherPlayers = await getOtherPlayers();
-    console.log("Fetched controllable player data:", this.playerData); 
-    console.log("Fetched all player data:", this.otherPlayers); 
 
     //Return the image based on img.src
     function getImage(imgSrc) {
@@ -291,6 +287,10 @@ export default {
         y: offset.y,
       },
     });
+
+    // Other Players
+    this.otherPlayers = await getOtherPlayers();
+    console.log("Fetched all player data:", this.otherPlayers); 
     
     // PLayer selected sprite -> Impacts which character sprite will be loaded for the champion
     let playerSelectedProfile = 'profile_' +  this.playerData.sprite;
@@ -303,7 +303,7 @@ export default {
       right: getImage(this[playerSelectedProfile].right),
     };
 
-    // Create Player - Default player sprite direction and drawing offset.
+    // Create Player - Default player sprite drawing offset.
     const playerDrawingOffset = { x: 40, y: 50 };
 
     let playerUsername = this.playerData.username;
