@@ -36,6 +36,7 @@ export default {
       return (
         this.username !== "" &&
         this.username.length >= 3 &&
+        this.username.length <= 10 &&
         validCharsRegex.test(this.username) &&
         (this.username.match(/[a-zA-Z]/g) || []).length >= 3
       );
@@ -126,7 +127,7 @@ export default {
     v-model="username"
     class="username"
     placeholder="Username"
-    maxlength="16"
+    maxlength="10"
     minlength="4"
   />
   <button
