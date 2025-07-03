@@ -15,17 +15,17 @@ export class Sprite {
     };
   }
 
-  draw(ctx) {
+  draw(ctx, offset = { x: 0, y: 0 }) {
     if (!this.isLoaded) return; // Prevent drawing before the image is loaded
 
     ctx.drawImage(
       this.image,
       this.frames.val * this.width,
       0,
-      this.image.width / this.frames.max,
-      this.image.height,
-      this.position.x,
-      this.position.y,
+      this.width,
+      this.height,
+      this.position.x + offset.x,  // 👈 apply offset
+      this.position.y + offset.y,  // 👈 apply offset
       this.width,
       this.height
     );

@@ -44,7 +44,7 @@ import Radio from "@/components/Radio.vue";
 
 import { mapGetters, mapActions } from 'vuex';
 import { dayNightCycle } from '@/logic/day-night-cycle.js';
-import { getOtherPlayers } from '@/logic/other-players.js';
+import { drawOtherPlayers, getOtherPlayers } from '@/logic/other-players.js';
 import { Sprite } from '@/logic/sprite.js'
 import { createBoundry } from "@/logic/boundry";
 import { createPlayer, movePlayer } from '@/logic/player';
@@ -152,6 +152,7 @@ export default {
 
       socket.subscribe('/topic/movement', (message) => {
         const movementData = JSON.parse(message.body);
+        updateOtherPlayer(movementData, this);
         this.updatePlayerPosition(movementData);
       });
     }
@@ -226,6 +227,7 @@ export default {
     window.addEventListener("keyup", handleKeyUp);
 
     this.playerData = this.player;
+    console.log("Controllable player: id[" + this.playerData.id + "], username: " + this.playerData.username);
 
     if (this.playerSocket) {
     this.playerSocket.onmessage = (event) => {
@@ -289,7 +291,7 @@ export default {
     });
 
     // Other Players
-    this.otherPlayers = await getOtherPlayers();
+    this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
     console.log("Fetched all player data:", this.otherPlayers); 
     
     // PLayer selected sprite -> Impacts which character sprite will be loaded for the champion
@@ -332,6 +334,7 @@ export default {
    const game = () => {
       window.requestAnimationFrame(game);
       map.draw(ctx);
+      drawOtherPlayers(ctx);
       playerCharacter.draw(ctx);
       mapForeground.draw(ctx);
       playerCharacter.drawUsername(ctx);

@@ -1,8 +1,10 @@
+import { Sprite } from '@/logic/sprite.js';
+
 // List of other players on the server
-let otherPlayers = [];
+const otherPlayers = new Map();
 
 // Get a list of all Players on the server.
- export async function getOtherPlayers() {
+ export async function getOtherPlayers(vm, excludeId) {
     try {
       const response = await fetch("http://localhost:8080/game", {
       method: "GET",
@@ -16,39 +18,59 @@ let otherPlayers = [];
       }
 
       // Process the JSON data
-      otherPlayers = await response.json();
+      const players = await response.json();
+      console.log("Raw response data:", players);
       
-      return otherPlayers; // Or return if you're calling this from another function 
-    } catch (error) {
-      console.error("Error:", error);
-      return [];
-    }
-  }
+     players.forEach(player => {
+      if (player.id === excludeId) return;
 
-  function updatePlayerPosition(movementData) {
-    const existing = otherPlayers.find(p => p.id === movementData.playerId);
-    if (existing) {
-        // Update existing player's position
-        existing.x = movementData.playerPositionX;
-        existing.y = movementData.playerPositionY;
-    } else {
-        // Add new player to the list if not found
-        otherPlayers.push({
-            id: movementData.playerId,
-            username: movementData.username,
-            x: movementData.playerPositionX,
-            y: movementData.playerPositionY
-        });
-    }
+      const profileKey = 'profile_' + player.sprite;
+
+      const playerSprites = {
+        up: getImage(vm[profileKey].up),
+        down: getImage(vm[profileKey].down),
+        left: getImage(vm[profileKey].left),
+        right: getImage(vm[profileKey].right),
+      };
+
+
+     const playerSprite = new Sprite({
+      image: playerSprites.down, // or any direction
+      position: {
+        x: player.positionX,
+        y: player.positionY
+      },
+      frames: { max: 4 },
+      playerSprites,
+      username: player.username
+    });
+
+      otherPlayers.set(player.id, playerSprite);
+      console.log("Creating sprite for", player);
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+  }
+    return otherPlayers;
 }
 
-// Call this function in your animation loop to draw all players
-function drawPlayers(ctx) {
-    otherPlayers.forEach(otherPlayer => {
-        ctx.drawImage(otherPlayer.sprite, otherPlayer.x, otherPlayer.y); // Render the player's sprite
-        // Optionally, draw the username above the player
-        ctx.font = '12px Arial';
-        ctx.fillStyle = 'white';
-        ctx.fillText(otherPlayer.username, otherPlayer.x, otherPlayer.y - 10);
-    });
+function getImage(src) {
+  const image = new Image();
+  image.src = src;
+  return image;
+}
+
+// Resetoffset, because it is already acounted for in the original draw method
+const otherPlayerOffset = {
+  x: 0,
+  y: 0
+}
+
+export function drawOtherPlayers(ctx) {
+  for (const [, playerSprite] of otherPlayers.entries()) {
+    playerSprite.draw(ctx, otherPlayerOffset); // ← This is the key call
+    playerSprite.drawUsername(ctx, otherPlayerOffset); // Optional, if implemented
+    console.log("Drawing:", playerSprite.username, playerSprite.position, playerSprite.Image);
+  }
 }
