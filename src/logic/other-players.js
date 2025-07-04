@@ -69,8 +69,8 @@ const otherPlayerOffset = {
 
 export function drawOtherPlayers(ctx) {
   for (const [, playerSprite] of otherPlayers.entries()) {
-    playerSprite.draw(ctx, otherPlayerOffset); // ← This is the key call
-    playerSprite.drawUsername(ctx, otherPlayerOffset); // Optional, if implemented
+    playerSprite.draw(ctx, otherPlayerOffset);
+    playerSprite.drawUsername(ctx, otherPlayerOffset);
     console.log("Drawing:", playerSprite.username, playerSprite.position, playerSprite.Image);
   }
 }

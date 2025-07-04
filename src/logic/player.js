@@ -29,6 +29,7 @@ let keys = {
   s: { pressed: false },
   a: { pressed: false },
   d: { pressed: false },
+  p: { pressed: false },
 };
 
 let lastKey = "";
@@ -51,17 +52,24 @@ export function handleKeyDown(e) {
       lastKey = "d";
       keys.d.pressed = true;
       break;
+    case "p": // "P" is the key for displaying a list of active players in game
+      keys.p.pressed = true;
+      break;
   }
 }
 
 export function handleKeyUp(e) {
-  // Keyup logic
   if (["w", "s", "a", "d"].includes(e.key)) {
     keys[e.key].pressed = false;
     if (playerStatus != null) {
       playerStatus.moving = false;
       playerStatus.frames.val = 0;
     }
+  }
+
+   if (["p"].includes(e.key)) { // If "P" key is released hide the player list
+    keys[e.key].pressed = false;
+
   }
 }
 
@@ -80,7 +88,7 @@ export function movePlayer(playerData, playerSocket, player, playerSprites, boun
             ...boundary,
             position: {
               x: boundary.position.x,
-              y: boundary.position.y + 8,
+              y: boundary.position.y,
             },
           },
         })
@@ -111,7 +119,7 @@ export function movePlayer(playerData, playerSocket, player, playerSprites, boun
             ...boundary,
             position: {
               x: boundary.position.x,
-              y: boundary.position.y - 12,
+              y: boundary.position.y - 15,
             },
           },
         })

@@ -41,6 +41,7 @@ import profile_6_right_imgSrc from "@/assets/images/charSprites/profile_6_right.
 import outdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
 import indoorTheme from "@/assets/audio/IndoorTheme.mp3";
 import Radio from "@/components/Radio.vue";
+import PlayerList from "@/components/PlayerList.vue";
 
 import { mapGetters, mapActions } from 'vuex';
 import { dayNightCycle } from '@/logic/day-night-cycle.js';
@@ -122,6 +123,7 @@ export default {
 
   components: {
     Radio,
+    PlayerList
   },
 
   computed: {
@@ -361,10 +363,22 @@ export default {
 
 <template>
   <Radio :isPlaying="isPlaying" @click="togglePlay" />
-  <canvas class="canvas"></canvas>
+  <div class="canvas--container">
+    <PlayerList />
+    <canvas class="canvas"></canvas>
+  </div>
+
 </template>
 
 <style scoped>
+.canvas--container {
+  width: 1280px;
+  height: 720px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .canvas {
   border: 8px double #15a068;
 }
