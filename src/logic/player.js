@@ -29,7 +29,6 @@ let keys = {
   s: { pressed: false },
   a: { pressed: false },
   d: { pressed: false },
-  p: { pressed: false },
 };
 
 let lastKey = "";
@@ -52,9 +51,6 @@ export function handleKeyDown(e) {
       lastKey = "d";
       keys.d.pressed = true;
       break;
-    case "p": // "P" is the key for displaying a list of active players in game
-      keys.p.pressed = true;
-      break;
   }
 }
 
@@ -65,11 +61,6 @@ export function handleKeyUp(e) {
       playerStatus.moving = false;
       playerStatus.frames.val = 0;
     }
-  }
-
-   if (["p"].includes(e.key)) { // If "P" key is released hide the player list
-    keys[e.key].pressed = false;
-
   }
 }
 

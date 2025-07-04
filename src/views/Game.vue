@@ -58,6 +58,7 @@ export default {
       map_foreground_imgSrc,
       playerData: null,
       otherPlayers: [],
+      showPlayerList: false,
 
       profile_1: {
         sprite: profile_1_imgSrc,
@@ -138,28 +139,6 @@ export default {
     }
   },
 
-  mounted() {
-    const socket = this.playerSocket;
-
-    if (socket) {
-      socket.connect({}, (frame) => {
-        socket.subscribe("/topic/player-updates", (message) => {
-          const data = JSON.parse(message.body);
-          console.log("Player update received:", data);
-
-          // Handle player updates (e.g., update position, stats, etc.)
-          this.updatePlayerData(data);
-        });
-      });
-
-      socket.subscribe('/topic/movement', (message) => {
-        const movementData = JSON.parse(message.body);
-        updateOtherPlayer(movementData, this);
-        this.updatePlayerPosition(movementData);
-      });
-    }
-  },
-
   methods: {
     togglePlay() {
       if (this.outdoorThemePlaying && this.isPlaying) {
@@ -192,6 +171,12 @@ export default {
       console.log("Movement data received:", movementData);
     },
 
+    handleKeyPress(e) {
+      if (e.key === "p" || e.key === "P") {
+        this.showPlayerList = !this.showPlayerList;
+      }
+    },
+
     handleBeforeUnload() {
       console.log("Before unload triggered");
       this.disconnectWebSocket();
@@ -216,6 +201,7 @@ export default {
   },
 
   beforeUnmount() {
+    window.removeEventListener("keydown", this.handleKeyPress);
     // Remove event listeners when the component is about to unmount
     window.removeEventListener("keydown", handleKeyDown);
     window.removeEventListener("keyup", handleKeyUp);
@@ -224,21 +210,42 @@ export default {
   },
 
  async mounted() {
+  const socket = this.playerSocket;
+
+    if (socket) {
+      socket.connect({}, (frame) => {
+        socket.subscribe("/topic/player-updates", (message) => {
+          const data = JSON.parse(message.body);
+          console.log("Player update received:", data);
+
+          // Handle player updates (e.g., update position, stats, etc.)
+          this.updatePlayerData(data);
+        });
+      });
+
+      socket.subscribe('/topic/movement', (message) => {
+        const movementData = JSON.parse(message.body);
+        updateOtherPlayer(movementData, this);
+        this.updatePlayerPosition(movementData);
+      });
+    }
+
     window.addEventListener("beforeunload", this.handleBeforeUnload);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("keydown", this.handleKeyPress);
 
     this.playerData = this.player;
     console.log("Controllable player: id[" + this.playerData.id + "], username: " + this.playerData.username);
 
     if (this.playerSocket) {
-    this.playerSocket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      console.log("Received message:", message);
-    };
-  } else {
-    console.error("WebSocket connection is not available.");
-  }
+      this.playerSocket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        console.log("Received message:", message);
+      };
+    } else {
+      console.error("WebSocket connection is not available.");
+    }
 
     const vm = this;
 
@@ -364,7 +371,7 @@ export default {
 <template>
   <Radio :isPlaying="isPlaying" @click="togglePlay" />
   <div class="canvas--container">
-    <PlayerList />
+    <PlayerList v-if="showPlayerList"/>
     <canvas class="canvas"></canvas>
   </div>
 

@@ -2,6 +2,7 @@ import { Sprite } from '@/logic/sprite.js';
 
 // List of other players on the server
 const otherPlayers = new Map();
+var rawPlayerList = [];
 
 // Get a list of all Players on the server.
  export async function getOtherPlayers(vm, excludeId) {
@@ -19,7 +20,7 @@ const otherPlayers = new Map();
 
       // Process the JSON data
       const players = await response.json();
-      console.log("Raw response data:", players);
+      rawPlayerList = players;
       
      players.forEach(player => {
       if (player.id === excludeId) return;
@@ -73,4 +74,8 @@ export function drawOtherPlayers(ctx) {
     playerSprite.drawUsername(ctx, otherPlayerOffset);
     console.log("Drawing:", playerSprite.username, playerSprite.position, playerSprite.Image);
   }
+}
+
+export function getRawPlayersList() {
+  return rawPlayerList;
 }

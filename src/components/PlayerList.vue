@@ -1,4 +1,14 @@
-<script>
+<script setup>
+import { ref, onMounted } from 'vue';
+import { getOtherPlayers, getRawPlayersList } from '@/logic/other-players.js';
+
+const players = ref([]);
+
+onMounted(async () => {
+  await getOtherPlayers(null, null); // doesn't need vm/sprites for raw list
+  players.value = getRawPlayersList();
+  console.log("Loaded players:", players.value);
+});
 </script>
 
 <template>
@@ -14,67 +24,12 @@
             <th>Losses</th>
         </tr>
         <!-- Placeholder data for now !TODO (Implement vue hook to update the list from the database) -->
-        <tr> 
-            <td>1.</td>
-            <td>Geralt</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-        <tr>
-            <td>2.</td>
-            <td>Geralt</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-        <tr>
-            <td>3.</td>
-            <td>Geralt</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-         <tr>
-            <td>4.</td>
-            <td>Geralt</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-        <tr>
-            <td>5.</td>
-            <td>Geralt</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-        <tr>
-            <td>6.</td>
-            <td>Geralt</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-        <tr>
-            <td>7.</td>
-            <td>Geralt</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-        <tr>
-            <td>8.</td>
-            <td>Geralt</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-        <tr>
-            <td>9.</td>
-            <td>Geralt</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-          <tr>
-            <td>10.</td>
-            <td>Geralt</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-        
+        <tr v-for="(player, index) in players" :key="player.id">
+            <td>{{ index + 1 }}.</td>
+            <td>{{ player.username }}</td>
+            <td>{{ player.wins }}</td>
+            <td>{{ player.losses }}</td>
+        </tr>        
     </table>
 </div>
 </template>
@@ -88,7 +43,7 @@
         flex-direction: column;
         justify-content: start;
         align-items: start;
-        background-color: rgba(0, 0, 0, 0.80);
+        background-color: #000000cc;
         border: 8px ridge #15a068;
         font-family: "Metamorphous", 'Times New Roman', Times, serif;
         color: #42f1ab;
