@@ -1,13 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { getOtherPlayers, getRawPlayersList } from '@/logic/other-players.js';
+import { getRawPlayersList } from "@/logic/other-players.js";
 
 const players = ref([]);
 
-onMounted(async () => {
-  await getOtherPlayers(null, null); // doesn't need vm/sprites for raw list
+onMounted(() => {
   players.value = getRawPlayersList();
-  console.log("Loaded players:", players.value);
 });
 </script>
 
@@ -24,7 +22,7 @@ onMounted(async () => {
             <th>Losses</th>
         </tr>
         <!-- Placeholder data for now !TODO (Implement vue hook to update the list from the database) -->
-        <tr v-for="(player, index) in players" :key="player.id">
+        <tr v-for="(player, index) in players" :key="index">
             <td>{{ index + 1 }}.</td>
             <td>{{ player.username }}</td>
             <td>{{ player.wins }}</td>

@@ -77,5 +77,9 @@ export function drawOtherPlayers(ctx) {
 }
 
 export function getRawPlayersList() {
-  return rawPlayerList;
+  return rawPlayerList.map(player => ({
+    username: player.username,
+    wins: player.scoreboard?.wins || 0,
+    losses: player.scoreboard?.losses || 0
+  }));
 }

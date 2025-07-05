@@ -37,6 +37,7 @@ function lights(radius, fillStyle, circleXY, ctx) {
   ctx.stroke();
 }
 
+
 // Simulated in-game clock configuration
 const MINUTES_PER_REAL_SECOND = 3; // 1 real second = 3 in-game minutes
 const MINUTES_IN_A_DAY = 1440;
@@ -65,21 +66,40 @@ function getSkyOpacity(minutes) {
   return 0;
 }
 
-// Main day-night rendering logic
+let lastSimulatedUpdate = -1;
+let cachedSkyOpacity = 0;
+let targetSkyOpacity = 0;
+let transitionStartTime = 0;
+const UPDATE_INTERVAL_MINUTES = 60;
+
 export function dayNightCycle(playerOffset, ctx, offset, map) {
   const adjustedCircleXY = circleXY.map(({ x, y }) => ({
     x: x - playerOffset.x,
     y: y,
   }));
 
-  const simulatedTime = getSimulatedTime();
+  const currentSimulatedTime = getSimulatedTime();
+  const roundedTime = Math.floor(currentSimulatedTime);
 
-  // Optional debug log:
-  const hour = Math.floor(simulatedTime / 60);
-  const minute = Math.floor(simulatedTime % 60);
-  console.log(`In-game time: ${hour}:${minute < 10 ? '0' + minute : minute}`);
+  const elapsedInGameMinutes = (roundedTime + MINUTES_IN_A_DAY - lastSimulatedUpdate) % MINUTES_IN_A_DAY;
 
-  const skyOpacity = getSkyOpacity(simulatedTime);
+  if (
+    lastSimulatedUpdate === -1 ||
+    elapsedInGameMinutes >= UPDATE_INTERVAL_MINUTES
+  ) {
+    lastSimulatedUpdate = roundedTime;
+    transitionStartTime = currentSimulatedTime;
+    cachedSkyOpacity = targetSkyOpacity;
+    targetSkyOpacity = getSkyOpacity(currentSimulatedTime);
+  }
+
+  const transitionProgress = Math.min(
+    (currentSimulatedTime - transitionStartTime) / UPDATE_INTERVAL_MINUTES,
+    1
+  );
+
+  const skyOpacity = cachedSkyOpacity + (targetSkyOpacity - cachedSkyOpacity) * transitionProgress;
+
   if (skyOpacity > 0) {
     ctx.fillStyle = `rgba(12, 20, 124, ${skyOpacity})`;
     ctx.fillRect(offset.x, offset.y, map.width, map.height);
