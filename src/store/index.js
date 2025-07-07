@@ -3,7 +3,7 @@ import { createStore } from 'vuex';
 export default createStore({
   state: {
     playerData: null,
-    socket: null, // Store WebSocket here
+    socket: null,
   },
   mutations: {
     setPlayerData(state, data) {

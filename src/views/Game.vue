@@ -212,21 +212,26 @@ export default {
  async mounted() {
   const socket = this.playerSocket;
 
-    if (socket) {
-      socket.connect({}, (frame) => {
-        socket.subscribe("/topic/player-updates", (message) => {
-          const data = JSON.parse(message.body);
-          console.log("Player update received:", data);
+    if (socket && !socket.connected) {
+  socket.connect({}, (frame) => {
+      console.log("Connected:", frame);
 
-          // Handle player updates (e.g., update position, stats, etc.)
-          this.updatePlayerData(data);
+      socket.subscribe("/topic/player-updates", async (message) => {
+      const newPlayer = JSON.parse(message.body);
+      console.log("Received new player via WebSocket:", newPlayer);
+
+      if (newPlayer.id !== this.playerData.id) {
+        this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
+      }
+    });
+
+
+        // Subscribe to movement updates
+        socket.subscribe("/topic/movement", (message) => {
+          const movementData = JSON.parse(message.body);
+          updateOtherPlayer(movementData, this);
+          this.updatePlayerPosition(movementData);
         });
-      });
-
-      socket.subscribe('/topic/movement', (message) => {
-        const movementData = JSON.parse(message.body);
-        updateOtherPlayer(movementData, this);
-        this.updatePlayerPosition(movementData);
       });
     }
 
