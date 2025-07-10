@@ -202,7 +202,6 @@ export default {
 
   beforeUnmount() {
     window.removeEventListener("keydown", this.handleKeyPress);
-    // Remove event listeners when the component is about to unmount
     window.removeEventListener("keydown", handleKeyDown);
     window.removeEventListener("keyup", handleKeyUp);
     window.removeEventListener("beforeunload", this.handleBeforeUnload);
@@ -210,30 +209,53 @@ export default {
   },
 
  async mounted() {
-  const socket = this.playerSocket;
 
-    if (socket && !socket.connected) {
-  socket.connect({}, (frame) => {
-      console.log("Connected:", frame);
+    this.playerData = this.player;
+    if (!this.playerData) {
+      console.error("Player data missing, cannot subscribe");
+      return;
+    }
+
+    const socket = this.playerSocket;
+    
+    if (!socket) {
+      console.error("WebSocket instance is missing.");
+      return;
+    }
+
+    console.log("Socket exists");
+
+    const subscribeToTopics = () => {
+      console.log("Subscribing to WebSocket topics...");
 
       socket.subscribe("/topic/player-updates", async (message) => {
-      const newPlayer = JSON.parse(message.body);
-      console.log("Received new player via WebSocket:", newPlayer);
+        const newPlayer = JSON.parse(message.body);
+        console.log("Received new player via WebSocket:", newPlayer);
 
-      if (newPlayer.id !== this.playerData.id) {
-        this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
-      }
-    });
-
-
-        // Subscribe to movement updates
-        socket.subscribe("/topic/movement", (message) => {
-          const movementData = JSON.parse(message.body);
-          updateOtherPlayer(movementData, this);
-          this.updatePlayerPosition(movementData);
-        });
+        if (newPlayer.id !== this.playerData.id) {
+          const players = await getOtherPlayers(this, this.playerData.id);
+          this.otherPlayers.splice(0, this.otherPlayers.length, ...players);
+          console.log("Updated otherPlayers:", this.otherPlayers);
+        }
       });
-    }
+
+      socket.subscribe("/topic/movement", (message) => {
+        const movementData = JSON.parse(message.body);
+        updateOtherPlayer(movementData, this);
+        this.updatePlayerPosition(movementData);
+      });
+    };
+
+  if (socket.connected) {
+    console.log("Socket already connected");
+    subscribeToTopics();
+  } else {
+    console.log("Socket not connected, attempting to connect...");
+    socket.connect({}, (frame) => {
+      console.log("Connected to WebSocket:", frame);
+      subscribeToTopics();
+    });
+  }
 
     window.addEventListener("beforeunload", this.handleBeforeUnload);
     window.addEventListener("keydown", handleKeyDown);
