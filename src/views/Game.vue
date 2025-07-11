@@ -192,7 +192,7 @@ export default {
 
       this.playerSocket.disconnect(() => {
          console.log("WebSocket disconnected successfully");
-         this.updateSocket(null); // Clear socket state
+         this.updateSocket(null);
       });
       } else {
           console.warn("No active WebSocket connection to disconnect.");
