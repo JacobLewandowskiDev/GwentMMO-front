@@ -19,6 +19,7 @@ var rawPlayerList = [];
       }
 
       // Process the JSON data
+      otherPlayers.clear(); 
       const players = await response.json();
       rawPlayerList = players;
       
@@ -62,17 +63,12 @@ function getImage(src) {
   return image;
 }
 
-// Resetoffset, because it is already acounted for in the original draw method
-const otherPlayerOffset = {
-  x: 0,
-  y: 0
-}
-
-export function drawOtherPlayers(ctx) {
-  for (const [, playerSprite] of otherPlayers.entries()) {
-    playerSprite.draw(ctx, otherPlayerOffset);
-    playerSprite.drawUsername(ctx, otherPlayerOffset);
-    console.log("Drawing:", playerSprite.username, playerSprite.position, playerSprite.Image);
+export function drawOtherPlayers(ctx, otherPlayerList) {
+  const otherPlayerOffset = { x: 0, y: 0 }; // no further offsetting needed
+  for (const [id, sprite] of otherPlayerList.entries()) {
+    sprite.draw(ctx, otherPlayerOffset);
+    sprite.drawUsername(ctx, otherPlayerOffset);
+    console.log("Drawing:", sprite.username, sprite.position, sprite.Image);
   }
 }
 

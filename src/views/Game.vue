@@ -57,7 +57,7 @@ export default {
       map_imgSrc,
       map_foreground_imgSrc,
       playerData: null,
-      otherPlayers: [],
+      otherPlayers: new Map(),
       showPlayerList: false,
 
       profile_1: {
@@ -229,15 +229,15 @@ export default {
       console.log("Subscribing to WebSocket topics...");
 
       socket.subscribe("/topic/player-updates", async (message) => {
-        const newPlayer = JSON.parse(message.body);
-        console.log("Received new player via WebSocket:", newPlayer);
+      const newPlayer = JSON.parse(message.body);
+      console.log("Received new player via WebSocket:", newPlayer);
 
-        if (newPlayer.id !== this.playerData.id) {
-          const players = await getOtherPlayers(this, this.playerData.id);
-          this.otherPlayers.splice(0, this.otherPlayers.length, ...players);
-          console.log("Updated otherPlayers:", this.otherPlayers);
-        }
-      });
+      if (newPlayer.id !== this.playerData.id) {
+        const updatedMap = await getOtherPlayers(this, this.playerData.id);
+        this.otherPlayers = updatedMap;
+        console.log("Updated otherPlayers (Map):", this.otherPlayers);
+      }
+    });
 
       socket.subscribe("/topic/movement", (message) => {
         const movementData = JSON.parse(message.body);
@@ -325,10 +325,6 @@ export default {
         y: offset.y,
       },
     });
-
-    // Other Players
-    this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
-    console.log("Fetched all player data:", this.otherPlayers); 
     
     // PLayer selected sprite -> Impacts which character sprite will be loaded for the champion
     let playerSelectedProfile = 'profile_' +  this.playerData.sprite;
@@ -370,7 +366,7 @@ export default {
    const game = () => {
       window.requestAnimationFrame(game);
       map.draw(ctx);
-      drawOtherPlayers(ctx);
+      drawOtherPlayers(ctx, this.otherPlayers);
       playerCharacter.draw(ctx);
       mapForeground.draw(ctx);
       playerCharacter.drawUsername(ctx);
