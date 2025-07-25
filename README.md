@@ -22,7 +22,7 @@ Interact with others through a global chat or challenge fellow adventurers to a 
   * Real-time multiplayer movement,
   * Day/Night Cycles,
   * Immersive in-game music (Created by me),
-  * Beutiful 2D pixel art style of the characters and the in-game world (Created by me),
+  * Beautiful 2D pixel art style of the characters and the in-game world (Created by me),
   * Global chat system,
   * Canvas-based game world
   * NPC characters that make the world feel more alive,
@@ -43,7 +43,7 @@ npm install
 npm run dev
 
 ## IMPPORTANT NOTE
- 1. This repository does not contain nor will it provide you with the necessary assets (sprites, textures, music or data maps) used for this project.
+ 1. This repository does not contain nor will it provide you with the necessary assets (sprites, textures, music or data maps, card decks) used for this project as they are copyrighted materials.
 
 ## Backend portion of the Application
 This is merely the frontend portion of the project. In order to see the codebase for the backend of the application please follow the link below to the front-end repository:
