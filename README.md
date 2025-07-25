@@ -32,17 +32,17 @@ Interact with others through a global chat or challenge fellow adventurers to a 
 
 ## Install & Run
 
-## Clone the repository
+### Clone the repository
 git clone https://github.com/YOUR_USERNAME/gwent-mmo-frontend.git
 cd gwent-mmo-frontend
 
-## Install dependencies
+### Install dependencies
 npm install
 
-## Start the development server
+### Start the development server
 npm run dev
 
-## IMPPORTANT NOTE
+## IMPORTANT NOTE
  1. This repository does not contain nor will it provide you with the necessary assets (sprites, textures, music or data maps, card decks) used for this project as they are copyrighted materials.
 
 ## Backend portion of the Application
