@@ -12,7 +12,7 @@ onMounted(() => {
 <template>
 <div class="playerList">
     <br>
-    <h1 class="playerList__title">Player List</h1>
+    <h1 class="playerList__title">ADVENTURER LIST</h1>
     <br>
     <table class="playerList__table">
         <tr>

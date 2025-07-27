@@ -362,12 +362,14 @@ export default {
     //Create Player movement boundries
     const boundaries = createBoundry(offset); 
 
+    this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
+
    //Game Loop
    const game = () => {
       window.requestAnimationFrame(game);
       map.draw(ctx);
-      drawOtherPlayers(ctx, this.otherPlayers);
       playerCharacter.draw(ctx);
+      drawOtherPlayers(ctx, this.otherPlayers);
       mapForeground.draw(ctx);
       playerCharacter.drawUsername(ctx);
       boundaries.forEach((boundary) => {

@@ -13,7 +13,7 @@ export default {
     return {
       stage: "menu",
       MenuTheme,
-      isPlaying: false,
+      isPlaying: true,
       menuSong: new Howl({
         src: MenuTheme,
         html5: true,
@@ -25,6 +25,7 @@ export default {
 
   mounted() {
     window.addEventListener("keydown", this.handleClickEnter);
+    this.menuSong.play();
   },
 
   methods: {
