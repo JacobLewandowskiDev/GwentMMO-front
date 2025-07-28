@@ -362,6 +362,7 @@ export default {
     //Create Player movement boundries
     const boundaries = createBoundry(offset); 
 
+    // Get a list of other players
     this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
 
    //Game Loop
