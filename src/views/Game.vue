@@ -168,7 +168,15 @@ export default {
     ...mapActions(["updateSocket"]),
 
     updatePlayerPosition(movementData) {
-      console.log("Movement data received:", movementData);
+      const { playerId, playerPositionX, playerPositionY } = movementData;
+
+      if (playerId !== this.currentPlayer.id) {
+        const player = this.players.find(p => p.id === playerId);
+        if (player) {
+          player.positionX = playerPositionX;
+          player.positionY = playerPositionY;
+        }
+      }
     },
 
     handleKeyPress(e) {
