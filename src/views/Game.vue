@@ -45,7 +45,7 @@ import PlayerList from "@/components/PlayerList.vue";
 
 import { mapGetters, mapActions } from 'vuex';
 import { dayNightCycle } from '@/logic/day-night-cycle.js';
-import { drawOtherPlayers, getOtherPlayers } from '@/logic/other-players.js';
+import { drawOtherPlayers, getOtherPlayers, removeOtherPlayer, updateOtherPlayerPosition } from '@/logic/other-players.js';
 import { Sprite } from '@/logic/sprite.js'
 import { createBoundry } from "@/logic/boundry";
 import { createPlayer, movePlayer } from '@/logic/player';
@@ -225,45 +225,45 @@ export default {
     }
 
     const socket = this.playerSocket;
-    
     if (!socket) {
       console.error("WebSocket instance is missing.");
       return;
     }
 
-    console.log("Socket exists");
-
     const subscribeToTopics = () => {
       console.log("Subscribing to WebSocket topics...");
 
+      // New players joining
       socket.subscribe("/topic/player-updates", async (message) => {
-      const newPlayer = JSON.parse(message.body);
-      console.log("Received new player via WebSocket:", newPlayer);
+        const newPlayer = JSON.parse(message.body);
+        if (newPlayer.id !== this.playerData.id) {
+          this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
+          console.log("Updated otherPlayers:", this.otherPlayers);
+        }
+      });
 
-      if (newPlayer.id !== this.playerData.id) {
-        const updatedMap = await getOtherPlayers(this, this.playerData.id);
-        this.otherPlayers = updatedMap;
-        console.log("Updated otherPlayers (Map):", this.otherPlayers);
-      }
-    });
-
+      // Movement updates
       socket.subscribe("/topic/movement", (message) => {
         const movementData = JSON.parse(message.body);
-        updateOtherPlayer(movementData, this);
-        this.updatePlayerPosition(movementData);
+        if (movementData.playerId !== this.playerData.id) {
+          updateOtherPlayerPosition(movementData, this.otherPlayers);
+        }
+      });
+
+      socket.subscribe("/topic/player-disconnect", (message) => {
+        const { playerId } = JSON.parse(message.body);
+        removeOtherPlayer(playerId);
       });
     };
 
-  if (socket.connected) {
-    console.log("Socket already connected");
-    subscribeToTopics();
-  } else {
-    console.log("Socket not connected, attempting to connect...");
-    socket.connect({}, (frame) => {
-      console.log("Connected to WebSocket:", frame);
+    if (socket.connected) {
       subscribeToTopics();
-    });
-  }
+    } else {
+      socket.connect({}, (frame) => {
+        console.log("Connected to WebSocket:", frame);
+        subscribeToTopics();
+      });
+    }
 
     window.addEventListener("beforeunload", this.handleBeforeUnload);
     window.addEventListener("keydown", handleKeyDown);
