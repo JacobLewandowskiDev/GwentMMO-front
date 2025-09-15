@@ -232,7 +232,7 @@ function changeSongs(player, vm) {
 
 let lastUpdateTime = 0;
 
-export function sendMovementUpdate(player, playerSocket, x, y,  interval = 500) {
+export function sendMovementUpdate(player, playerSocket, x, y,  interval = 100) {
   const now = Date.now();
   if (now - lastUpdateTime >= interval) {
     lastUpdateTime = now;

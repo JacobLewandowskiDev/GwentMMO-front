@@ -10,9 +10,7 @@ export async function getOtherPlayers(vm, excludeId) {
       headers: { "Content-Type": "application/json" },
     });
 
-    if (!response.ok) {
-      throw new Error(`Error fetching players: ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`Error fetching players: ${response.statusText}`);
 
     const players = await response.json();
     rawPlayerList = players;
@@ -21,6 +19,10 @@ export async function getOtherPlayers(vm, excludeId) {
       if (player.id === excludeId) return;
 
       const profileKey = "profile_" + player.sprite;
+      if (!vm[profileKey]) {
+        console.warn(`Missing sprite profile for player ${player.id}`);
+        return;
+      }
 
       const playerSprites = {
         up: getImage(vm[profileKey].up),
@@ -30,22 +32,20 @@ export async function getOtherPlayers(vm, excludeId) {
       };
 
       if (otherPlayers.has(player.id)) {
-        // Update target position for smooth movement
         const existingPlayer = otherPlayers.get(player.id);
         existingPlayer.targetX = player.positionX;
         existingPlayer.targetY = player.positionY;
       } else {
-        // Create new Sprite for new player
         const playerSprite = new Sprite({
           image: playerSprites.down,
           position: { x: player.positionX, y: player.positionY },
-          frames: { max: 4 },
+          frames: { max: 4, val: 0, speedCounter: 0 },
           playerSprites,
           username: player.username,
           targetX: player.positionX,
           targetY: player.positionY,
+          playerSprites
         });
-
         otherPlayers.set(player.id, playerSprite);
       }
     });
@@ -62,7 +62,6 @@ function getImage(src) {
   return img;
 }
 
-
 export function drawOtherPlayers(ctx, otherPlayers) {
   otherPlayers.forEach((sprite) => {
     if (sprite.targetX != null && sprite.targetY != null) {
@@ -72,13 +71,32 @@ export function drawOtherPlayers(ctx, otherPlayers) {
       const speed = 3;
       const snapThreshold = 12;
 
+      let moving = false;
       if (distance > snapThreshold) {
         sprite.position.x += (dx / distance) * speed;
         sprite.position.y += (dy / distance) * speed;
+        moving = true;
+
+        if (sprite.playerSprites) {
+          if (Math.abs(dx) > Math.abs(dy)) {
+            sprite.image = dx > 0 ? sprite.playerSprites.right : sprite.playerSprites.left;
+          } else {
+            sprite.image = dy > 0 ? sprite.playerSprites.down : sprite.playerSprites.up;
+          }
+        }
       } else {
         sprite.position.x = sprite.targetX;
         sprite.position.y = sprite.targetY;
+        moving = false;
       }
+
+      // Animate frames slower for smooth effect
+      if (!sprite.frames.speedCounter) sprite.frames.speedCounter = 0;
+      sprite.frames.speedCounter++;
+      if (moving && sprite.frames.speedCounter % 8 === 0) {
+        sprite.frames.val = (sprite.frames.val + 1) % sprite.frames.max;
+      }
+      if (!moving) sprite.frames.val = 0;
     }
 
     sprite.draw(ctx);
@@ -101,7 +119,6 @@ export function updateOtherPlayerPosition(movementData, otherPlayers) {
     playerSprite.targetY = movementData.playerPositionY;
   }
 }
-
 
 export function getRawPlayersList() {
   return rawPlayerList.map((player) => ({

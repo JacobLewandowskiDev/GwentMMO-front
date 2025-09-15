@@ -1,10 +1,11 @@
 export class Sprite {
-  constructor({ image, position, frames = { max: 1 }, username = ""}) {
+  constructor({ image, position, frames = { max: 1 }, username = "", playerSprites = null}) {
     this.image = image;
     this.position = position;
     this.frames = { ...frames, val: 0, elapsed: 0 };
     this.username = username;
     this.moving = false;
+    this.playerSprites = playerSprites;
 
     // Ensure the image has loaded before drawing
     this.isLoaded = false;
