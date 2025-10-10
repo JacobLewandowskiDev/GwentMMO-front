@@ -50,6 +50,9 @@ import { Sprite } from '@/logic/sprite.js'
 import { createBoundry } from "@/logic/boundry";
 import { createPlayer, movePlayer } from '@/logic/player';
 import { handleKeyDown, handleKeyUp } from '@/logic/player.js';
+import npcData from "@/data/npcs.json";
+import { loadNPCs, drawNPCs } from "@/logic/npc.js";
+
 
 export default {
   data() {
