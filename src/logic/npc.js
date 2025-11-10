@@ -33,7 +33,6 @@ export class NPC {
   }
 }
 
-// ✅ Loader and drawing functions inside the same file
 export function loadNPCs(npcData, npcSprites, drawingOffset, canvas) {
   const npcs = [];
   for (const npcInfo of npcData) {
