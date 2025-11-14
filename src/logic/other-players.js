@@ -39,13 +39,15 @@ export async function getOtherPlayers(vm, excludeId) {
         const playerSprite = new Sprite({
           image: playerSprites.down,
           position: { x: player.positionX, y: player.positionY },
-          frames: { max: 4, val: 0, speedCounter: 0 },
+          frames: { max: 4, val: 0 },
           playerSprites,
           username: player.username,
+
+          // Smooth movement targets
           targetX: player.positionX,
-          targetY: player.positionY,
-          playerSprites
+          targetY: player.positionY
         });
+
         otherPlayers.set(player.id, playerSprite);
       }
     });
@@ -68,14 +70,13 @@ export function drawOtherPlayers(ctx, otherPlayers) {
       const dx = sprite.targetX - sprite.position.x;
       const dy = sprite.targetY - sprite.position.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      const speed = 3;
-      const snapThreshold = 12;
+      const speed = 2.65;
+      const snapThreshold = 2;
 
-      let moving = false;
       if (distance > snapThreshold) {
         sprite.position.x += (dx / distance) * speed;
         sprite.position.y += (dy / distance) * speed;
-        moving = true;
+        sprite.moving = true;
 
         if (sprite.playerSprites) {
           if (Math.abs(dx) > Math.abs(dy)) {
@@ -87,22 +88,17 @@ export function drawOtherPlayers(ctx, otherPlayers) {
       } else {
         sprite.position.x = sprite.targetX;
         sprite.position.y = sprite.targetY;
-        moving = false;
+        sprite.moving = false;
       }
-
-      // Animate frames slower for smooth effect
-      if (!sprite.frames.speedCounter) sprite.frames.speedCounter = 0;
-      sprite.frames.speedCounter++;
-      if (moving && sprite.frames.speedCounter % 8 === 0) {
-        sprite.frames.val = (sprite.frames.val + 1) % sprite.frames.max;
-      }
-      if (!moving) sprite.frames.val = 0;
     }
 
+    // Sprite.draw() now handles animation based on sprite.moving
     sprite.draw(ctx);
     sprite.drawUsername(ctx);
   });
 }
+
+
 
 export function removeOtherPlayer(playerId) {
   if (otherPlayers.has(playerId)) {

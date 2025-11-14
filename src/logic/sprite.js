@@ -25,18 +25,26 @@ export class Sprite {
       0,
       this.width,
       this.height,
-      this.position.x + offset.x,  // 👈 apply offset
-      this.position.y + offset.y,  // 👈 apply offset
+      this.position.x + offset.x,
+      this.position.y + offset.y,
       this.width,
       this.height
     );
 
     // Animate sprite if moving
-    if (this.moving && this.frames.max > 1) {
-      this.frames.elapsed++;
-      if (this.frames.elapsed % 10 === 0) {
+    if (!this.frames.lastFrameTime) this.frames.lastFrameTime = performance.now();
+    if (!this.frames.frameDuration) this.frames.frameDuration = 150; // change this to change animation speed
+
+    if (this.moving) {
+      const now = performance.now();
+      const elapsed = now - this.frames.lastFrameTime;
+      if (elapsed >= this.frames.frameDuration) {
         this.frames.val = (this.frames.val + 1) % this.frames.max;
+        this.frames.lastFrameTime = now;
       }
+    } else {
+      this.frames.val = 0;
+      this.frames.lastFrameTime = performance.now();
     }
 
    

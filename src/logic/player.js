@@ -64,6 +64,8 @@ export function handleKeyUp(e) {
   }
 }
 
+const movementSpeed = 2.8;
+
 export function movePlayer(playerData, playerSocket, player, playerSprites, boundaries, ctx, vm) {
   playerStatus = player;
   let moving = true;
@@ -91,8 +93,8 @@ export function movePlayer(playerData, playerSocket, player, playerSprites, boun
       }
     }
     if (moving == true) {
-      player.position.y -= 4;
-      ctx.translate(0, 4);
+      player.position.y -= movementSpeed;
+      ctx.translate(0, movementSpeed);
       player.moving = true;
       sendMovementUpdate(playerData, playerSocket, player.position.x, player.position.y);
     }
@@ -122,8 +124,8 @@ export function movePlayer(playerData, playerSocket, player, playerSprites, boun
       }
     }
     if (moving == true) {
-      player.position.y += 4;
-      ctx.translate(0, -4);
+      player.position.y += movementSpeed;
+      ctx.translate(0, -movementSpeed);
       player.moving = true;
       sendMovementUpdate(playerData, playerSocket, player.position.x, player.position.y);
     }
@@ -153,8 +155,8 @@ export function movePlayer(playerData, playerSocket, player, playerSprites, boun
       }
     }
     if (moving == true) {
-      player.position.x -= 4;
-      ctx.translate(4, 0);
+      player.position.x -= movementSpeed;
+      ctx.translate(movementSpeed, 0);
       player.moving = true;
       sendMovementUpdate(playerData, playerSocket, player.position.x, player.position.y);
     }
@@ -184,8 +186,8 @@ export function movePlayer(playerData, playerSocket, player, playerSprites, boun
       }
     }
     if (moving == true) {
-      player.position.x += 4;
-      ctx.translate(-4, 0);
+      player.position.x += movementSpeed;
+      ctx.translate(-movementSpeed, 0);
       player.moving = true;
       sendMovementUpdate(playerData, playerSocket, player.position.x, player.position.y);
     }
