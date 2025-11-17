@@ -38,6 +38,16 @@ import profile_6_down_imgSrc from "@/assets/images/charSprites/profile_6_down.pn
 import profile_6_left_imgSrc from "@/assets/images/charSprites/profile_6_left.png";
 import profile_6_right_imgSrc from "@/assets/images/charSprites/profile_6_right.png";
 
+import npc1_up_imgSrc from "@/assets/images/charSprites/npc_1_up.png";
+import npc1_down_imgSrc from "@/assets/images/charSprites/npc_1_down.png";
+import npc1_left_imgSrc from "@/assets/images/charSprites/npc_1_left.png";
+import npc1_right_imgSrc from "@/assets/images/charSprites/npc_1_right.png";
+
+import npc2_up_imgSrc from "@/assets/images/charSprites/npc_2_up.png";
+import npc2_down_imgSrc from "@/assets/images/charSprites/npc_2_down.png";
+import npc2_left_imgSrc from "@/assets/images/charSprites/npc_2_left.png";
+import npc2_right_imgSrc from "@/assets/images/charSprites/npc_2_right.png";
+
 import outdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
 import indoorTheme from "@/assets/audio/IndoorTheme.mp3";
 import Radio from "@/components/Radio.vue";
@@ -50,8 +60,15 @@ import { Sprite } from '@/logic/sprite.js'
 import { createBoundry } from "@/logic/boundry";
 import { createPlayer, movePlayer } from '@/logic/player';
 import { handleKeyDown, handleKeyUp } from '@/logic/player.js';
-import npcData from "@/data/npcs.json";
+import npcData from "@/data/npcData.json";
 import { loadNPCs, drawNPCs } from "@/logic/npc.js";
+
+//Return the image based on img.src
+    function getImage(imgSrc) {
+      const image = new Image();
+      image.src = imgSrc;
+      return image;
+    }
 
 
 export default {
@@ -105,6 +122,21 @@ export default {
         left: profile_6_left_imgSrc,
         right: profile_6_right_imgSrc
       },
+      
+      npcSpriteSets: {
+         npc_1: {
+          up: getImage(npc1_up_imgSrc),
+          down: getImage(npc1_down_imgSrc),
+          left: getImage(npc1_left_imgSrc),
+          right: getImage(npc1_right_imgSrc)
+        },
+        npc_2: {
+          up: getImage(npc2_up_imgSrc),
+          down: getImage(npc2_down_imgSrc),
+          left: getImage(npc2_left_imgSrc),
+          right: getImage(npc2_right_imgSrc)
+        }
+      },
 
       isPlaying: true,
       outdoorThemePlaying: false,
@@ -142,7 +174,7 @@ export default {
     }
   },
 
-  methods: {
+  methods: {   
     togglePlay() {
       if (this.outdoorThemePlaying && this.isPlaying) {
         this.outdoorThemeSong.pause();
@@ -307,13 +339,6 @@ export default {
       y: -1880,
     };
 
-    //Return the image based on img.src
-    function getImage(imgSrc) {
-      const image = new Image();
-      image.src = imgSrc;
-      return image;
-    }
-
     // Map Image
     const mapImage = getImage(map_imgSrc);
     // Foreground Image
@@ -376,10 +401,14 @@ export default {
     // Get a list of other players
     this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
 
+    //Create the NPC characters
+   const npcs = await loadNPCs(npcData, this.npcSpriteSets);
+
    //Game Loop
    const game = () => {
       window.requestAnimationFrame(game);
       map.draw(ctx);
+      drawNPCs(ctx, npcs);
       playerCharacter.draw(ctx);
       drawOtherPlayers(ctx, this.otherPlayers);
       mapForeground.draw(ctx);
