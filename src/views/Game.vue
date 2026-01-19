@@ -410,8 +410,8 @@ export default {
       window.requestAnimationFrame(game);
       map.draw(ctx);
       drawNPCs(ctx, npcs);
-      playerCharacter.draw(ctx);
       drawOtherPlayers(ctx, this.otherPlayers);
+      playerCharacter.draw(ctx);
       mapForeground.draw(ctx);
       playerCharacter.drawUsername(ctx);
       boundaries.forEach((boundary) => {
