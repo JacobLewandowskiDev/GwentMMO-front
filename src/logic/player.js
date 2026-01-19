@@ -1,7 +1,7 @@
 import { Sprite } from "@/logic/sprite.js";
 
   // Create Player
-  export function createPlayer(playerSprites, playerDrawingOffset, canvas, playerUsername) {
+  export function createPlayer(playerSprites, playerDrawingOffset, canvas, playerUsername, playerId = null) {
     const player = new Sprite({
       image: playerSprites.down,
       position: {
@@ -15,7 +15,8 @@ import { Sprite } from "@/logic/sprite.js";
         left: playerSprites.left,
         right: playerSprites.right,
       },
-      username: playerUsername
+      username: playerUsername,
+      id: playerId
     });
 
     return player;
@@ -54,19 +55,34 @@ export function handleKeyDown(e) {
   }
 }
 
-export function handleKeyUp(e) {
-  if (["w", "s", "a", "d"].includes(e.key)) {
-    keys[e.key].pressed = false;
-    if (playerStatus != null) {
-      playerStatus.moving = false;
-      playerStatus.frames.val = 0;
-    }
+export function handleKeyUp(e, player, playerSocket) {
+  if (!["w", "a", "s", "d"].includes(e.key)) return;
+
+  keys[e.key].pressed = false;
+
+  if (!player) return;
+
+  player.moving = false;
+  player.frames.val = 0;
+
+  if (playerSocket && player.id) {
+    playerSocket.send(
+      "/app/player-stopped",
+      {},
+      JSON.stringify({
+        playerId: player.id,
+        x: player.position.x,
+        y: player.position.y
+      })
+    );
   }
 }
+
 
 const movementSpeed = 2.8;
 
 export function movePlayer(playerData, playerSocket, player, playerSprites, boundaries, ctx, vm) {
+  player.moving = false;
   playerStatus = player;
   let moving = true;
   if (keys.w.pressed && lastKey == "w") {

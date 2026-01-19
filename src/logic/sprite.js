@@ -47,8 +47,13 @@ export class Sprite {
       this.height
     );
 
-    if (!this.frames.lastFrameTime) this.frames.lastFrameTime = performance.now();
-    if (!this.frames.frameDuration) this.frames.frameDuration = 150;
+    if (!this.frames.lastFrameTime) {
+      this.frames.lastFrameTime = performance.now();
+    }
+
+    if (!this.frames.frameDuration) {
+      this.frames.frameDuration = 150;
+    }
 
     if (this.moving) {
       const now = performance.now();
@@ -57,11 +62,9 @@ export class Sprite {
         this.frames.lastFrameTime = now;
       }
     } else {
-      this.frames.val = 0;
-      this.frames.lastFrameTime = performance.now();
+      this.frames.val = 0; // idle frame ONLY
     }
   }
-
 
   drawUsername(ctx) {
   if (!this.username) return;

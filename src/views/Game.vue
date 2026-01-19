@@ -246,7 +246,7 @@ export default {
   beforeUnmount() {
     window.removeEventListener("keydown", this.handleKeyPress);
     window.removeEventListener("keydown", handleKeyDown);
-    window.removeEventListener("keyup", handleKeyUp);
+    window.removeEventListener("keyup", this.keyUpHandler);
     window.removeEventListener("beforeunload", this.handleBeforeUnload);
     this.disconnectWebSocket();
   },
@@ -301,8 +301,9 @@ export default {
     }
 
     window.addEventListener("beforeunload", this.handleBeforeUnload);
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("keydown", (e) => handleKeyDown(e));
+    this.keyUpHandler = (e) => handleKeyUp(e, playerCharacter, this.playerSocket);
+    window.addEventListener("keyup", this.keyUpHandler);
     window.addEventListener("keydown", this.handleKeyPress);
 
     this.playerData = this.player;
