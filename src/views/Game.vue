@@ -52,6 +52,7 @@ import outdoorTheme from "@/assets/audio/OutdoorTheme.mp3";
 import indoorTheme from "@/assets/audio/IndoorTheme.mp3";
 import Radio from "@/components/Radio.vue";
 import PlayerList from "@/components/PlayerList.vue";
+import PlayerChat from "@/components/PlayerChat.vue";
 
 import { mapGetters, mapActions } from 'vuex';
 import { dayNightCycle } from '@/logic/day-night-cycle.js';
@@ -159,7 +160,8 @@ export default {
 
   components: {
     Radio,
-    PlayerList
+    PlayerList,
+    PlayerChat
   },
 
   computed: {
@@ -441,7 +443,7 @@ export default {
     <PlayerList v-if="showPlayerList"/>
     <canvas class="canvas"></canvas>
   </div>
-
+  <PlayerChat />
 </template>
 
 <style scoped>

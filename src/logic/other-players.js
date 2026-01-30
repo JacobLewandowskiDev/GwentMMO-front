@@ -18,11 +18,12 @@ export async function getOtherPlayers(vm, excludeId) {
     players.forEach((player) => {
       if (player.id === excludeId) return;
 
-      const profileKey = "profile_" + player.sprite;
-      if (!vm[profileKey]) {
-        console.warn(`Missing sprite profile for player ${player.id}`);
-        return;
+      if (otherPlayers.has(player.id)) {
+        return; // ⬅️ CRITICAL FIX
       }
+
+      const profileKey = "profile_" + player.sprite;
+      if (!vm[profileKey]) return;
 
       const playerSprites = {
         up: getImage(vm[profileKey].up),
@@ -31,25 +32,20 @@ export async function getOtherPlayers(vm, excludeId) {
         right: getImage(vm[profileKey].right),
       };
 
-      if (otherPlayers.has(player.id)) {
-        const existingPlayer = otherPlayers.get(player.id);
-        existingPlayer.targetX = player.positionX;
-        existingPlayer.targetY = player.positionY;
-      } else {
-        const playerSprite = new Sprite({
-          image: playerSprites.down,
-          position: { x: player.positionX, y: player.positionY },
-          frames: { max: 4, val: 0 },
-          playerSprites,
-          username: player.username,
+      const playerSprite = new Sprite({
+        image: playerSprites.down,
+        position: {
+          x: player.positionX,
+          y: player.positionY,
+        },
+        frames: { max: 4 },
+        playerSprites,
+        username: player.username,
+        targetX: player.positionX,
+        targetY: player.positionY
+      });
 
-          // Smooth movement targets
-          targetX: player.positionX,
-          targetY: player.positionY
-        });
-
-        otherPlayers.set(player.id, playerSprite);
-      }
+      otherPlayers.set(player.id, playerSprite);
     });
   } catch (error) {
     console.error("Error fetching other players:", error);
