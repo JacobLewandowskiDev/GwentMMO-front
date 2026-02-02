@@ -1,4 +1,5 @@
 import { Sprite } from "@/logic/sprite.js";
+import { inputMode } from "@/logic/inputMode";
 
   // Create Player
   export function createPlayer(playerSprites, playerDrawingOffset, canvas, playerUsername, playerId = null) {
@@ -34,6 +35,10 @@ let keys = {
 
 let lastKey = "";
 export function handleKeyDown(e) {
+  if(inputMode.mode !== 'GAME') {
+    return;
+  }
+
   // Keydown logic
   switch (e.key) {
     case "w":

@@ -443,7 +443,7 @@ export default {
     <PlayerList v-if="showPlayerList"/>
     <canvas class="canvas"></canvas>
   </div>
-  <PlayerChat />
+  <PlayerChat :playerSocket="playerSocket" :playerUsername="this.player.username" />
 </template>
 
 <style scoped>
