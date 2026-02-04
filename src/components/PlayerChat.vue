@@ -5,69 +5,115 @@ export default {
 
   props: ['playerSocket', 'playerUsername'],
 
-    data() {
-        return {
-        chatMessage: "",
-        messages: [],
-        }
-    },
-
-     mounted() {
-        if (!this.playerSocket) return;
-
-        // Subscribe to incoming messages
-        this.playerSocket.subscribe("/topic/chat", (message) => {
-          const msgObj = JSON.parse(message.body);
-          this.messages.push(msgObj.playerMessage); // <- use playerMessage
-          this.scrollToBottom();
-        });
-    },
-
-    computed: {
-      chatOpen() {
-        return inputMode.mode === 'CHAT';
+  data() {
+      return {
+      chatMessage: "",
+      messages: [],
+      peek: false,
+      peekTimeout: null 
       }
+  },
+
+  mounted() {
+    if (!this.playerSocket) return;
+
+    this.playerSocket.subscribe("/topic/chat", (message) => {
+        const msgObj = JSON.parse(message.body);
+
+        if (!msgObj.playerUsername) {
+            // System message (join/left the game)
+            this.messages.push({ system: true, text: msgObj.playerMessage });
+        } else {
+            // Player message
+            this.messages.push({
+                system: false,
+                username: msgObj.playerUsername,
+                message: msgObj.playerMessage,
+                color: this.getUsernameColor(msgObj.playerUsername)
+            });
+        }
+
+        this.scrollToBottom();
+
+        if (inputMode.mode !== 'CHAT') {
+            this.triggerPeek();
+        }
+    });
+  },
+
+  computed: {
+    chatOpen() {
+      return inputMode.mode === 'CHAT';
+    }
+  },
+
+  methods: {
+    showChat() {
+      inputMode.mode = inputMode.mode === 'CHAT' ? 'GAME' : 'CHAT';
     },
 
-    methods: {
-        showChat() {
-          inputMode.mode = inputMode.mode === 'CHAT' ? 'GAME' : 'CHAT';
-        },
+    sendMessage() {
+      const msg = this.chatMessage.trim();
+      if (!msg || !this.playerSocket) return;
 
-        sendMessage() {
-          const msg = this.chatMessage.trim();
-          if (!msg || !this.playerSocket) return;
+      const payload = {
+          playerUsername: this.playerUsername,
+          playerMessage: msg
+      };
 
-          const payload = {
-              topic: "/app/chat",
-              playerUsername: this.playerUsername,
-              playerMessage: msg
-          };
+      this.playerSocket.send("/app/chat", {}, JSON.stringify(payload));
 
-          // Send to server
-          this.playerSocket.send("/app/chat", {}, JSON.stringify(payload));
+      this.chatMessage = "";
+    },
 
-          // Clear input
-          this.chatMessage = "";
-        },
+    getUsernameColor(username) {
+      let hash = 0;
+      for (let i = 0; i < username.length; i++) {
+          hash = username.charCodeAt(i) + ((hash << 5) - hash);
+      }
 
-        scrollToBottom() {
-          this.$nextTick(() => {
-              const chat = this.$el.querySelector(".playerChat__chatSection");
-              if (chat) chat.scrollTop = chat.scrollHeight;
-          });
-        }
+      const hue = Math.abs(hash) % 360;
+      return `hsl(${hue}, 70%, 60%)`;
+    },
+
+    scrollToBottom() {
+      this.$nextTick(() => {
+          const chat = this.$el.querySelector(".playerChat__chatSection");
+          if (chat) chat.scrollTop = chat.scrollHeight;
+      });
+    },
+
+    triggerPeek() {
+    this.peek = true;
+
+      if (this.peekTimeout) clearTimeout(this.peekTimeout);
+
+      this.peekTimeout = setTimeout(() => {
+        this.peek = false;
+      }, 3000);
     }
+  }
 }
 </script>
 
 <template>
-  <div :class="['playerChat', { 'playerChat--open': chatOpen }]">
-    <div class="playerChat__chatSection" v-if="chatOpen">
-        <div v-for="(msg, index) in messages" :key="index" class="chat-message">
-            {{ msg }}
-        </div>
+ <div :class="['playerChat', { 'playerChat--open': chatOpen || peek }]">
+  <div class="playerChat__chatSection" v-if="chatOpen || peek">
+    <div v-for="(msg, index) in messages" :key="index" class="chat-message">
+      <span v-if="msg.system" class="chat-message--system">
+          {{ msg.text }}
+      </span>
+      <span v-else>
+          <span class="chat-username" :style="{ color: msg.color }">
+              {{ msg.username }}
+          </span>
+          <span class="chat-separator">:</span>
+          <span class="chat-text">
+              {{ msg.message }}
+          </span>
+      </span>
     </div>
+  </div>
 
 
     <div class="playerChat__button">
@@ -181,4 +227,27 @@ export default {
     scale: .5;
     transition: fill 0.2s ease;
 }
+
+.chat-message {
+  margin-bottom: 0.25rem;
+  word-break: break-word;
+}
+
+.chat-username {
+  font-weight: 600;
+}
+
+.chat-separator {
+  margin-right: 0.25rem;
+}
+
+.chat-text {
+  color: white;
+}
+
+.chat-message--system {
+  color: #aaaaaa;
+  font-style: italic;
+}
+
 </style>

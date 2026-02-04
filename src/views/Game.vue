@@ -309,7 +309,6 @@ export default {
     window.addEventListener("keydown", this.handleKeyPress);
 
     this.playerData = this.player;
-    console.log("Controllable player: id[" + this.playerData.id + "], username: " + this.playerData.username);
 
     if (this.playerSocket) {
       this.playerSocket.onmessage = (event) => {
