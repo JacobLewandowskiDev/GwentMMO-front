@@ -202,6 +202,30 @@ export default {
       this.$emit("toggle-play");
     },
 
+    async loadAllNPCSprites() {
+    const preloadImage = (src) => new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+    });
+
+    return {
+      npc_1: {
+        up: await preloadImage(npc1_up_imgSrc),
+        down: await preloadImage(npc1_down_imgSrc),
+        left: await preloadImage(npc1_left_imgSrc),
+        right: await preloadImage(npc1_right_imgSrc),
+      },
+      npc_2: {
+        up: await preloadImage(npc2_up_imgSrc),
+        down: await preloadImage(npc2_down_imgSrc),
+        left: await preloadImage(npc2_left_imgSrc),
+        right: await preloadImage(npc2_right_imgSrc),
+      }
+    };
+  },
+
     ...mapActions(["updateSocket"]),
 
     updatePlayerPosition(movementData) {
@@ -404,16 +428,18 @@ export default {
     this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
 
     //Create the NPC characters
+    this.npcSpriteSets = await this.loadAllNPCSprites();
    const npcs = await loadNPCs(npcData, this.npcSpriteSets);
 
    //Game Loop
    const game = () => {
       window.requestAnimationFrame(game);
       map.draw(ctx);
-      drawNPCs(ctx, npcs);
+    
       drawOtherPlayers(ctx, this.otherPlayers);
       playerCharacter.draw(ctx);
       mapForeground.draw(ctx);
+      drawNPCs(ctx, npcs, playerCharacter);
       playerCharacter.drawUsername(ctx);
       boundaries.forEach((boundary) => {
         boundary.draw(ctx);
