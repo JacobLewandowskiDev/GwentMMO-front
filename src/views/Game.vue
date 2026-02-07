@@ -54,6 +54,7 @@ import Radio from "@/components/Radio.vue";
 import PlayerList from "@/components/PlayerList.vue";
 import PlayerChat from "@/components/PlayerChat.vue";
 
+import { reactive } from 'vue';
 import { mapGetters, mapActions } from 'vuex';
 import { dayNightCycle } from '@/logic/day-night-cycle.js';
 import { drawOtherPlayers, getOtherPlayers, removeOtherPlayer, updateOtherPlayerPosition } from '@/logic/other-players.js';
@@ -78,7 +79,7 @@ export default {
       map_imgSrc,
       map_foreground_imgSrc,
       playerData: null,
-      otherPlayers: new Map(),
+      otherPlayers: reactive(new Map()),
       showPlayerList: false,
 
       profile_1: {
@@ -295,13 +296,37 @@ export default {
       console.log("Subscribing to WebSocket topics...");
 
       // New players joining
-      socket.subscribe("/topic/player-updates", async (message) => {
-        const newPlayer = JSON.parse(message.body);
-        if (newPlayer.id !== this.playerData.id) {
-          this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
-          console.log("Updated otherPlayers:", this.otherPlayers);
-        }
-      });
+     socket.subscribe("/topic/player-updates", (message) => {
+      const data = JSON.parse(message.body);
+      console.log("New player update received:", data);
+
+      if (data.playerId === this.playerData.id) return;
+      if (this.otherPlayers.has(data.playerId)) return;
+
+      const profileKey = "profile_" + data.sprite;
+      console.log("profileKey lookup:", profileKey, this[profileKey]);
+
+      if (!this[profileKey]) return;
+
+        const playerSprites = {
+            up: getImage(this[profileKey].up),
+            down: getImage(this[profileKey].down),
+            left: getImage(this[profileKey].left),
+            right: getImage(this[profileKey].right),
+        };
+
+        const playerSprite = new Sprite({
+            image: playerSprites.down,
+            position: { x: data.positionX, y: data.positionY },
+            frames: { max: 4 },
+            playerSprites,
+            username: data.username,
+            targetX: data.positionX,
+            targetY: data.positionY
+        });
+
+        this.otherPlayers.set(data.playerId, playerSprite);
+    });
 
       // Movement updates
       socket.subscribe("/topic/movement", (message) => {
