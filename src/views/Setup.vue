@@ -62,7 +62,7 @@ export default {
       if (this.isUsernameValid) {
         const player = { username: this.username, sprite: this.currentSprite };
         try {
-          const response = await fetch("http://localhost:8080/game", {
+          const response = await fetch("/gwent/game", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -78,7 +78,7 @@ export default {
               this.updatePlayerData(data);
 
               // Initialize SockJS connection
-              const socket = new SockJS("http://localhost:8080/game-socket");
+              const socket = new SockJS("/gwent/game-socket");
               this.stompClient = Stomp.over(() => socket);
 
               this.stompClient.connect(

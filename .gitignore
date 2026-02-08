@@ -428,3 +428,6 @@ FodyWeavers.xsd
 
 # Data directory
 /src/data
+
+# NGINX configuration
+/nginx.conf

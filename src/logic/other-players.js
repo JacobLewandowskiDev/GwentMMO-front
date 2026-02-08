@@ -5,7 +5,7 @@ var rawPlayerList = [];
 
 export async function getOtherPlayers(vm, excludeId) {
   try {
-    const response = await fetch("http://localhost:8080/game", {
+    const response = await fetch("/gwent/game", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
