@@ -34,7 +34,7 @@ Interact with others through a global chat or challenge fellow adventurers to a 
 
 ### Clone the repository
 ```
-git clone https://github.com/YOUR_USERNAME/gwent-mmo-frontend.git
+git clone https://github.com/JacobLewandowskiDev/gwent-mmo-frontend.git
 cd gwent-mmo-frontend
 ```
 
