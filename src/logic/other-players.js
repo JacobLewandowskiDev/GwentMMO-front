@@ -19,7 +19,7 @@ export async function getOtherPlayers(vm, excludeId) {
       if (player.id === excludeId) return;
 
       if (otherPlayers.has(player.id)) {
-        return; // ⬅️ CRITICAL FIX
+        return;
       }
 
       const profileKey = "profile_" + player.sprite;

@@ -27,9 +27,12 @@ export default {
   },
 
   computed: {
-    currentSpriteImg() {
-      return `/src/assets/images/profileSprites/profile_${this.currentSprite}.png`;
-    },
+   currentSpriteImg() {
+    return new URL(
+      `../assets/images/profileSprites/profile_${this.currentSprite}.png`, 
+      import.meta.url
+    ).href;
+  },
 
     isUsernameValid() {
       const validCharsRegex = /^[a-zA-Z!@#$]+$/;
