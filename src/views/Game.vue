@@ -1,6 +1,7 @@
 <script>
 import map_imgSrc from "@/assets/images/gwent_tavern_map.png";
 import map_foreground_imgSrc from "@/assets/images/tavern_map_foreground.png";
+import instructions_imgSrc from "@/assets/images/instructions.png";
 import profile_1_imgSrc from "@/assets/images/profileSprites/profile_1.png";
 import profile_2_imgSrc from "@/assets/images/profileSprites/profile_2.png";
 import profile_3_imgSrc from "@/assets/images/profileSprites/profile_3.png";
@@ -54,10 +55,9 @@ import Radio from "@/components/Radio.vue";
 import PlayerList from "@/components/PlayerList.vue";
 import PlayerChat from "@/components/PlayerChat.vue";
 
-import { reactive } from 'vue';
 import { mapGetters, mapActions } from 'vuex';
 import { dayNightCycle } from '@/logic/day-night-cycle.js';
-import { drawOtherPlayers, getOtherPlayers, removeOtherPlayer, updateOtherPlayerPosition } from '@/logic/other-players.js';
+import { otherPlayers, addRawPlayer, drawOtherPlayers, getOtherPlayers, removeOtherPlayer, updateOtherPlayerPosition } from '@/logic/other-players.js';
 import { Sprite } from '@/logic/sprite.js'
 import { createBoundry } from "@/logic/boundry";
 import { createPlayer, movePlayer } from '@/logic/player';
@@ -65,6 +65,7 @@ import { handleKeyDown, handleKeyUp } from '@/logic/player.js';
 import npcData from "@/data/npcData.json";
 import { loadNPCs, drawNPCs } from "@/logic/npc.js";
 import { inputMode } from "@/logic/inputMode";
+
 
 //Return the image based on img.src
     function getImage(imgSrc) {
@@ -79,9 +80,10 @@ export default {
     return {
       map_imgSrc,
       map_foreground_imgSrc,
+      instructions_imgSrc,
       playerData: null,
-      otherPlayers: reactive(new Map()),
       showPlayerList: false,
+      showInstructions: localStorage.getItem('hideInstructions') !== 'true',
 
       profile_1: {
         sprite: profile_1_imgSrc,
@@ -204,6 +206,11 @@ export default {
       this.$emit("toggle-play");
     },
 
+    closeInstructions() {
+      this.showInstructions = false;
+      localStorage.setItem('hideInstructions', 'true');
+    },
+
     async loadAllNPCSprites() {
     const preloadImage = (src) => new Promise((resolve, reject) => {
       const img = new Image();
@@ -300,10 +307,9 @@ export default {
       // New players joining
      socket.subscribe("/topic/player-updates", (message) => {
       const data = JSON.parse(message.body);
-      console.log("New player update received:", data);
 
       if (data.playerId === this.playerData.id) return;
-      if (this.otherPlayers.has(data.playerId)) return;
+      if (otherPlayers.has(data.playerId)) return;
 
       const profileKey = "profile_" + data.sprite;
       console.log("profileKey lookup:", profileKey, this[profileKey]);
@@ -327,14 +333,21 @@ export default {
             targetY: data.positionY
         });
 
-        this.otherPlayers.set(data.playerId, playerSprite);
+        otherPlayers.set(data.playerId, playerSprite)
+
+        addRawPlayer({
+          id: data.playerId,
+          username: data.username,
+          sprite: data.sprite,
+          scoreboard: data.scoreboard || { wins: 0, losses: 0 }
+        });
     });
 
       // Movement updates
       socket.subscribe("/topic/movement", (message) => {
         const movementData = JSON.parse(message.body);
         if (movementData.playerId !== this.playerData.id) {
-          updateOtherPlayerPosition(movementData, this.otherPlayers);
+          updateOtherPlayerPosition(movementData, otherPlayers);
         }
       });
 
@@ -451,19 +464,22 @@ export default {
     //Create Player movement boundries
     const boundaries = createBoundry(offset); 
 
-    // Get a list of other players
-    this.otherPlayers = await getOtherPlayers(this, this.playerData.id);
+    // Get other players
+    const initialPlayersMap = await getOtherPlayers(this, this.playerData.id);
+    initialPlayersMap.forEach((sprite, id) => {
+        otherPlayers.set(id, sprite);
+    });
 
     //Create the NPC characters
     this.npcSpriteSets = await this.loadAllNPCSprites();
-   const npcs = await loadNPCs(npcData, this.npcSpriteSets);
+    const npcs = await loadNPCs(npcData, this.npcSpriteSets);
 
    //Game Loop
    const game = () => {
       window.requestAnimationFrame(game);
       map.draw(ctx);
     
-      drawOtherPlayers(ctx, this.otherPlayers);
+      drawOtherPlayers(ctx, otherPlayers);
       playerCharacter.draw(ctx);
       mapForeground.draw(ctx);
       drawNPCs(ctx, npcs, playerCharacter);
@@ -492,8 +508,13 @@ export default {
 <template>
   <Radio :isPlaying="isPlaying" @click="togglePlay" />
   <div class="canvas--container">
+    <div v-if="showInstructions" class="canvas--container__instructions">
+      <svg @click="closeInstructions" class="canvas--container__instructions__close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M183.1 137.4C170.6 124.9 150.3 124.9 137.8 137.4C125.3 149.9 125.3 170.2 137.8 182.7L275.2 320L137.9 457.4C125.4 469.9 125.4 490.2 137.9 502.7C150.4 515.2 170.7 515.2 183.2 502.7L320.5 365.3L457.9 502.6C470.4 515.1 490.7 515.1 503.2 502.6C515.7 490.1 515.7 469.8 503.2 457.3L365.8 320L503.1 182.6C515.6 170.1 515.6 149.8 503.1 137.3C490.6 124.8 470.3 124.8 457.8 137.3L320.5 274.7L183.1 137.4z"/></svg>
+      <img :src="instructions_imgSrc" alt="Movement Instructions" class="canvas__instructions"/>
+    </div>
     <PlayerList v-if="showPlayerList"/>
-    <canvas class="canvas"></canvas>
+    <canvas class="canvas">
+    </canvas>
   </div>
   <PlayerChat :playerSocket="playerSocket" :playerUsername="this.player.username" />
 </template>
@@ -505,9 +526,37 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .canvas {
   border: 8px double #15a068;
+}
+
+.canvas--container__instructions {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  z-index: 100;
+}
+
+.canvas--container__instructions__close {
+  position: absolute;
+  right: 2rem;
+  top: 2rem;
+  z-index: 110;
+  width: 4rem;
+  fill: #33e48b;
+  cursor: pointer;
+}
+
+.canvas--container__instructions__close:hover {
+  fill: #90ffc8;
+}
+
+.canvas--container__instructions img {
+  opacity: .93;
 }
 </style>

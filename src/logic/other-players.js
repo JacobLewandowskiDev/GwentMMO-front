@@ -1,7 +1,9 @@
 import { Sprite } from '@/logic/sprite.js';
+import { reactive } from 'vue';
 
-const otherPlayers = new Map();
-var rawPlayerList = [];
+export const otherPlayers = new Map();
+export const rawPlayerList = reactive([]);
+
 
 export async function getOtherPlayers(vm, excludeId) {
   try {
@@ -13,17 +15,20 @@ export async function getOtherPlayers(vm, excludeId) {
     if (!response.ok) throw new Error(`Error fetching players: ${response.statusText}`);
 
     const players = await response.json();
-    rawPlayerList = players;
+
+    rawPlayerList.splice(0, rawPlayerList.length, ...players);
+
+    otherPlayers.clear();
 
     players.forEach((player) => {
       if (player.id === excludeId) return;
 
-      if (otherPlayers.has(player.id)) {
+      const profileKey = "profile_" + player.sprite;
+      
+      if (!vm[profileKey]) {
+        console.warn(`Sprite assets for ${profileKey} not found.`);
         return;
       }
-
-      const profileKey = "profile_" + player.sprite;
-      if (!vm[profileKey]) return;
 
       const playerSprites = {
         up: getImage(vm[profileKey].up),
@@ -47,6 +52,8 @@ export async function getOtherPlayers(vm, excludeId) {
 
       otherPlayers.set(player.id, playerSprite);
     });
+    
+    console.log("Sync complete. Other players loaded:", otherPlayers.size);
   } catch (error) {
     console.error("Error fetching other players:", error);
   }
@@ -88,20 +95,35 @@ export function drawOtherPlayers(ctx, otherPlayers) {
       }
     }
 
-    // Sprite.draw() now handles animation based on sprite.moving
     sprite.draw(ctx);
     sprite.drawUsername(ctx);
   });
 }
 
-
+export function addRawPlayer(playerData) {
+    const exists = rawPlayerList.some(p => p.id === playerData.id);
+    if (!exists) {
+        rawPlayerList.push(playerData);
+        console.log("Player added to reactive list:", playerData.username);
+    }
+}
 
 export function removeOtherPlayer(playerId) {
-  if (otherPlayers.has(playerId)) {
-    otherPlayers.delete(playerId);
-    rawPlayerList = rawPlayerList.filter(p => p.id !== playerId);
-    console.log("Removing disconnected player:", playerId);
-  }
+    console.log("Attempting to remove player ID:", playerId);
+
+    const deleted = otherPlayers.delete(playerId) || otherPlayers.delete(Number(playerId)) || otherPlayers.delete(String(playerId));
+    
+    if (deleted) {
+        console.log(`Success: Sprite ${playerId} removed from Canvas.`);
+    } else {
+        console.warn(`Failure: Sprite ${playerId} not found in Map. Current Map IDs:`, Array.from(otherPlayers.keys()));
+    }
+
+    const index = rawPlayerList.findIndex(p => String(p.id) === String(playerId));
+    if (index !== -1) {
+        rawPlayerList.splice(index, 1);
+        console.log(`Success: Player ${playerId} removed from UI List.`);
+    }
 }
 
 export function updateOtherPlayerPosition(movementData, otherPlayers) {

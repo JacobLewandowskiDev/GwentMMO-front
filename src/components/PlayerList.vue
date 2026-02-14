@@ -1,11 +1,13 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { getRawPlayersList } from "@/logic/other-players.js";
+import { computed } from 'vue';
+import { rawPlayerList } from "@/logic/other-players.js";
 
-const players = ref([]);
-
-onMounted(() => {
-  players.value = getRawPlayersList();
+const players = computed(() => {
+  return rawPlayerList.map((player) => ({
+    username: player.username,
+    wins: player.scoreboard?.wins || 0,
+    losses: player.scoreboard?.losses || 0,
+  }));
 });
 </script>
 
@@ -22,7 +24,7 @@ onMounted(() => {
             <th>Losses</th>
         </tr>
         <!-- Placeholder data for now !TODO (Implement vue hook to update the list from the database) -->
-        <tr v-for="(player, index) in players" :key="index">
+        <tr v-for="(player, index) in players" :key="player.username">
             <td>{{ index + 1 }}.</td>
             <td>{{ player.username }}</td>
             <td>{{ player.wins }}</td>
