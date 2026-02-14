@@ -17,6 +17,9 @@ RUN mkdir -p /usr/share/nginx/html/gwent
 # Copy the built files into the subfolder
 COPY --from=build-stage /app/dist /usr/share/nginx/html/gwent
 
+# Copy your custom nginx config to replace the default one
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

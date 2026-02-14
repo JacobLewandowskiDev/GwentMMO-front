@@ -64,6 +64,7 @@ import { createPlayer, movePlayer } from '@/logic/player';
 import { handleKeyDown, handleKeyUp } from '@/logic/player.js';
 import npcData from "@/data/npcData.json";
 import { loadNPCs, drawNPCs } from "@/logic/npc.js";
+import { inputMode } from "@/logic/inputMode";
 
 //Return the image based on img.src
     function getImage(imgSrc) {
@@ -242,6 +243,7 @@ export default {
     },
 
     handleKeyPress(e) {
+      if(inputMode.mode === 'CHAT') return;
       if (e.key === "p" || e.key === "P") {
         this.showPlayerList = !this.showPlayerList;
       }
